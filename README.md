@@ -1,4 +1,4 @@
-# Ensemble-Classifier-Chains
+# Hybrid Partitions for Multi-Label Classification with Ensemble of Classifier Chains
 This code is part of my PhD research at PPG-CC/DC/UFSCar in colaboration with Katholieke Universiteit Leuven Campus Kulak Kortrijk Belgium. The R script runs in parallel the ECC made in python.
 
 
