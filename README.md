@@ -1,31 +1,52 @@
-# Hybrid Partitions for Multi-Label Classification with Ensemble of Classifier Chains
+# Ensemble of Classifier Chains runing with R and Python
 This code is part of my PhD research at PPG-CC/DC/UFSCar in colaboration with Katholieke Universiteit Leuven Campus Kulak Kortrijk Belgium. The R script runs in parallel the ECC made in python.
 
+## How to Cite 📑
+If you use this code in your research, please cite the following:
 
-## How to cite 
-@misc{Gatto2023, author = {Gatto, E. C.}, title = {Ensemble of Classifier Chains}, year = {2023}, publisher = {GitHub}, journal = {GitHub repository}, howpublished = {\url{https://github.com/cissagatto/Ensemble-Classifier-Chains}}}
-
-## Source Code
-This code source is composed of the project R to be used in RStudio IDE and also the following scripts R:
-
-1. libraries.R
-2. utils.R
-4. ecc-python.R
-5. ecc-mulan.R
-6. ecc-utiml.R
-7. run-python.R
-8. run-mulan.R
-9. run-utiml.R
-10. start.R
-11. config_files.R
-
-_ecc-mulan, ecc-utimlm, run-mulan and run-utiml are not implemented._
+```bibtex
+@misc{Gatto2025,
+  author = {Gatto, E. C.},
+  title = {Ensemble of Classifier Chains},
+  year = {2025},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/cissagatto/HPML.ECC}}
+}
+```
 
 
 
-## Preparing your experiment
+## 🗂️ Project Structure
 
-### STEP 1
+The codebase includes R and Python scripts that must be used together.
+
+### R Scripts (in `/R` folder):
+
+* `config-files.R`
+* `ecc-python.R`
+* `ecc-utiml.R`
+* `ecc.R` 
+* `ecc-mulan.R` (not implemented)
+* `jobs.R`
+* `libraries.R`
+* `run-python.R`
+* `utils.R`
+
+
+### Python Scripts (in `/Python` folder):
+
+* `confusion_matrix.py`
+* `measures.py`
+* `evaluation.py`
+* `ecc.py`
+* `main.py`
+
+
+## ⚙️ How to Reproduce the Experiment
+
+
+### Step 1 – Prepare the Dataset Metadata File
 A file called _datasets-original.csv_ must be in the *root project directory*. This file is used to read information about the datasets and they are used in the code. We have 90 multilabel datasets in this _.csv_ file. If you want to use another dataset, please, add the following information about the dataset in the file:
 
 
@@ -62,8 +83,10 @@ A file called _datasets-original.csv_ must be in the *root project directory*. T
 2 - [Click here](https://link.springer.com/book/10.1007/978-3-319-41111-8) to get explanation about each property.
 
 
-### STEP 2
-To run this experiment you need the _X-Fold Cross-Validation_ files and they must be compacted in **tar.gz** format. You can download these files, with 10-folds, ready for multilabel dataset by clicking [here](https://www.4shared.com/directory/ypgzwzjq/datasets-cross-validation.html). For a new dataset, in addition to including it in the **datasets-original.csv** file, you must also run this code [here](https://github.com/cissagatto/crossvalidationmultilabel). In the repository in question you will find all the instructions needed to generate the files in the format required for this experiment. The **tar.gz** file can be placed on any directory on your computer or server. The absolute path of the file should be passed as a parameter in the configuration file that will be read by **start.R** script. The dataset folds will be loaded from there.
+### STEP 2: Cross-Validation Files
+The experiment requires pre-processed cross-validation files in `.tar.gz` format. You can download the 10-fold files for multilabel datasets [here](https://1drv.ms/u/s!Aq6SGcf6js1mrZJSkZ3VEJ217rEd5A?e=IH73m3).
+
+For new datasets, you can generate these files by following the instructions in [this repository](https://github.com/cissagatto/crossvalidationmultilabel). After generating the files, place the `.tar.gz` archive in any directory, and provide the absolute path in the configuration file for the `global.R` script.
 
 
 ### STEP 3
@@ -86,6 +109,7 @@ To run this code you will need a configuration file saved in *csv* format and wi
 
 | Config          | Value                                                                            | 
 |-----------------|----------------------------------------------------------------------------------| 
+| FolderScripts   | Absolute path to the R folder scripts                                            |
 | Dataset_Path    | Absolute path to the directory where the dataset's tar.gz is stored              |
 | Temporary_Path  | Absolute path to the directory where temporary processing will be performed * 1  |
 | Partitions_Path | Absolute path to the directory where the best partitions are                     |
@@ -102,43 +126,38 @@ To run this code you will need a configuration file saved in *csv* format and wi
 You can save configuration files wherever you want. The absolute path will be passed as a command line argument.
 
 
-## Software Requirements
+## 🛠️ Software Requirements
+This code was develop in RStudio 2024.12.0+467 "Kousa Dogwood" Release (cf37a3e5488c937207f992226d255be71f5e3f41, 2024-12-11) for Ubuntu Jammy Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) rstudio/2024.12.0+467 Chrome/126.0.6478.234 Electron/31.7.6 Safari/537.36, Quarto 1.5.57
 
-This code was develop in RStudio Version 2022.07.2+576 "Spotted Wakerobin" Release (e7373ef832b49b2a9b88162cfe7eac5f22c40b34, 2022-09-06) for Ubuntu Bionic Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) QtWebEngine/5.12.8 Chrome/69.0.3497.128 Safari/537.36 
+- R version 4.5.0 (2025-04-11) -- "How About a Twenty-Six", Copyright (C) 2025 The R Foundation for Statistical Computing, Platform: x86_64-pc-linux-gnu
+- Python 3.10
+- Conda 24.11.3
 
-## Hardware Requirements
-This code may or may not be executed in parallel, however, it is highly recommended that you run it in parallel. The number of cores can be configured via the command line (number_cores). If number_cores = 1 the code will run sequentially. In our experiments, we used 10 cores. For reproducibility, we recommend that you also use ten cores. This code was tested with the birds dataset in the following machine:
+## 💻 Hardware Recommendations
+This code may or may not be executed in parallel, however, it is highly recommended that you run it in parallel. The number of cores can be configured via the command line (number_cores). If number_cores = 1 the code will run sequentially. In our experiments, we used 10 cores. For reproducibility, we recommend that you also use ten cores. This code was tested with the emotions dataset in the following machine:
 
-*System:*
+- Linux 6.11.0-26-generic #26~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC x86_64 x86_64 x86_64 GNU/Linux
+- Distributor ID: Ubuntu, Description: Ubuntu 24.04.2 LTS, Release: 24.04, Codename: noble
+- Manufacturer: Acer, Product Name: Nitro ANV15-51, Version: V1.16, Wake-up Type: Power Switch, Family: Acer Nitro V 15
 
-Kernel: 5.4.0-136-generic x86_64 bits: 64 compiler: gcc v: 9.4.0. Desktop: Cinnamon 5.2.7 wm: muffin dm: LightDM. Distro: Linux Mint 20.3 Una. Base: Ubuntu 20.04 focal 
-
-*Machine:*
-
-Type: Laptop System: LENOVO product: 82CG v: IdeaPad Gaming 3 15IMH05 serial: <filter> Chassis: type: 10 v: IdeaPad Gaming 3 15IMH05 serial: <filter> Mobo: LENOVO model: LNVNB161216 v: SDK0R33126 WIN serial: <filter> UEFI: LENOVO v: EGCN33WW date: 12/24/2020 
-
-*CPU:*
-
-Topology: 6-Core model: Intel Core i7-10750H bits: 64 type: MT MCP arch: N/A | L2 cache: 12.0 MiB | flags: avx avx2 lm nx pae sse sse2 sse3 sse4_1 sse4_2 ssse3 vmx bogomips: 62399 | Speed: 4287 MHz min/max: 800/5000 MHz Core speeds (MHz): 1: 4264 2: 4240 3: 4254 | 4: 4240 5: 4273 6: 4275 7: 4267 8: 4223 9: 4275 10: 4226 11: 4264 12:4282
-
-Then the experiment was executed in a cluster at UFSCar.
+Then the experiment was executed in a cluster at UFSC (Federal University of Santa Catarina Campus Blumenau).
 
 
 ## Results
-The results are stored in the _OUTPUT_ (or reports) directory.
+The results are stored in the _REPORTS_ directory.
 
 
 ## RUN
-To run the code, open the terminal, enter the *~/Chains-Hybrid-Partition/R* directory, and type:
+To run the code, open the terminal, enter the *~/HPML.ECC/R* directory, and type:
 
 ```
-Rscript start.R [absolute_path_to_config_file]
+Rscript ecc.R [absolute_path_to_config_file]
 ```
 
 Example:
 
 ```
-Rscript start.R "~/Chains-Hybrid-Partition/R/config-files/python/jaccard/ward.D2/silho/eccp-GpositiveGO.csv"
+Rscript ecc.R "~/HPML.ECC/R/config-files/ecc-emotion.csv"
 ```
 
 ## DOWNLOAD RESULTS
@@ -150,8 +169,11 @@ Rscript start.R "~/Chains-Hybrid-Partition/R/config-files/python/jaccard/ward.D2
 - This study was financed in part by the Conselho Nacional de Desenvolvimento Científico e Tecnológico - Brasil (CNPQ) - Process number 200371/2022-3.
 - The authors also thank the Brazilian research agencies FAPESP financial support.
 
-# Contact
-elainececiliagatto@gmail.com
+
+## 📞 Contact
+Elaine Cecília Gatto
+✉️ [elainececiliagatto@gmail.com](mailto:elainececiliagatto@gmail.com)
+
 
 ## Links
 

@@ -1,29 +1,34 @@
-###############################################################################
-# ECC Partitions with Ensemble of classifier chain                         #
-# Copyright (C) 2022                                                          #
-#                                                                             #
-# This code is free software: you can redistribute it and/or modify it under  #
-# the terms of the GNU General Public License as published by the Free        #
-# Software Foundation, either version 3 of the License, or (at your option)   #
-# any later version. This code is distributed in the hope that it will be     #
-# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of      #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General    #
-# Public License for more details.                                            #
-#                                                                             #
-# Elaine Cecilia Gatto | Prof. Dr. Ricardo Cerri | Prof. Dr. Mauri Ferrandin  #
-# Federal University of Sao Carlos (UFSCar: https://www2.ufscar.br/) |        #
-# Campus Sao Carlos | Computer Department (DC: https://site.dc.ufscar.br/)    #
-# Program of Post Graduation in Computer Science                              #
-# (PPG-CC: http://ppgcc.dc.ufscar.br/) | Bioinformatics and Machine Learning  #
-# Group (BIOMAL: http://www.biomal.ufscar.br/)                                #                                                                                                #
-###############################################################################
+##############################################################################
+# ENSEMBLE OF CLASSIFIER CHAINS                                              #
+# Copyright (C) 2025                                                         #
+#                                                                            #
+# This code is free software: you can redistribute it and/or modify it under #
+# the terms of the GNU General Public License as published by the Free       #
+# Software Foundation, either version 3 of the License, or (at your option)  #
+# any later version. This code is distributed in the hope that it will be    #
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of     #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General   #
+# Public License for more details.                                           #
+#                                                                            #
+# Prof. Elaine Cecilia Gatto - UFLA - Lavras, Minas Gerais, Brazil           #
+# Prof. Ricardo Cerri - USP - São Carlos, São Paulo, Brazil                  #
+# Prof. Mauri Ferrandin - UFSC - Blumenau, Santa Catarina, Brazil            #
+# Prof. Celine Vens - Ku Leuven - Kortrijik, West Flanders, Belgium          #
+# PhD Felipe Nakano Kenji - Ku Leuven - Kortrijik, West Flanders, Belgium    #
+#                                                                            #
+# BIOMAL - http://www.biomal.ufscar.br                                       #
+#                                                                            #
+##############################################################################
 
 
 ###############################################################################
 # SET WORKSAPCE                                                               #
 ###############################################################################
-FolderRoot = "~/Ensemble-Classifier-Chains"
-FolderScripts = "~/Ensemble-Classifier-Chains/R"
+library(here)
+library(stringr)
+FolderRoot <- here::here()
+FolderScripts <- here::here("R")
+
 
 
 ############################################################################
@@ -47,9 +52,6 @@ converteArff <- function(arg1, arg2, arg3, FolderUtils){
 ##################################################################################################
 directories <- function(parameters){
   
-  FolderRoot = "~/Ensemble-Classifier-Chains"
-  FolderScripts = "~/Ensemble-Classifier-Chains/R"
-  
   retorno = list()
   
   #############################################################################
@@ -58,6 +60,7 @@ directories <- function(parameters){
   # execution. Other folder is used to store definitely the results.          #
   # Example: "/dev/shm/result"; "/scratch/result"; "/tmp/result"              #
   #############################################################################
+  folderResults = parameters$Config.File$Folder.Results
   if(dir.exists(parameters$Config.File$Folder.Results) == TRUE){
     setwd(folderResults)
     dir_folderResults = dir(folderResults)
@@ -68,8 +71,23 @@ directories <- function(parameters){
     dir_folderResults = dir(folderResults)
     n_folderResults = length(dir_folderResults)
   }
+  retorno$FolderResults = parameters$Config.File$Folder.Results
   
-  
+  #############################################################################
+  #
+  #############################################################################
+  folderScripts = parameters$Config.File$FolderScripts
+  if(dir.exists(parameters$Config.File$FolderScripts) == TRUE){
+    setwd(folderScripts)
+    dir_folderScripts = dir(folderScripts)
+    n_folderScripts = length(dir_folderScripts)
+  } else {
+    dir.create(folderScripts)
+    setwd(folderScripts)
+    dir_folderScripts= dir(folderScripts)
+    n_folderScripts = length(dir_folderScripts)
+  }
+  retorno$folderScripts = parameters$Config.File$folderScripts
   
   #############################################################################
   #
@@ -85,7 +103,23 @@ directories <- function(parameters){
     dir_folderUtils = dir(folderUtils)
     n_folderUtils = length(dir_folderUtils)
   }
+  retorno$FolderUtils = folderUtils
   
+  #############################################################################
+  #
+  #############################################################################
+  folderPython = paste(FolderRoot, "/Python", sep="")
+  if(dir.exists(folderPython) == TRUE){
+    setwd(folderPython)
+    dir_folderPython = dir(folderPython)
+    n_folderPython = length(dir_folderPython)
+  } else {
+    dir.create(folderPython)
+    setwd(folderPython)
+    dir_folderPython = dir(folderPython)
+    n_folderPython = length(dir_folderPython)
+  }
+  retorno$FolderPython = folderPython
   
   
   #############################################################################
@@ -104,6 +138,8 @@ directories <- function(parameters){
     dir_folderECC = dir(folderECC)
     n_folderECC = length(dir_folderECC)
   }
+  
+  
   
   
   #############################################################################
@@ -322,319 +358,18 @@ infoDataSet <- function(dataset){
   gc()
 }
 
-
-
-predictions.information <- function(nomes.rotulos, 
-                                    proba, 
-                                    preds, 
-                                    trues, 
-                                    folder){
-  
-  #####################################################################
-  pred.o = paste(colnames(preds), "-pred", sep="")
-  names(preds) = pred.o
-  
-  true.labels = paste(colnames(trues), "-true", sep="")
-  names(trues) = true.labels
-  
-  proba.n = paste(nomes.rotulos, "-proba", sep="")
-  names(proba) = proba.n
-  
-  all.predictions = cbind(proba, preds, trues)
-  setwd(folder)
-  write.csv(all.predictions, "predictions.csv", row.names = FALSE)
-  
-  ###############################################
-  bipartition = data.frame(trues, preds)
-  
-  # número de instâncias do conjunto
-  num.instancias = nrow(bipartition)
-  
-  # número de rótulos do conjunto
-  num.rotulos = ncol(trues)
-  
-  # número de instâncias positivas
-  num.positive.instances = apply(bipartition, 2, sum)
-  
-  # número de instâncias negativas
-  num.negative.instances = num.instancias - num.positive.instances 
-  
-  # salvando
-  res = rbind(num.positive.instances, num.negative.instances)
-  name = paste(folder, "/instances-pn.csv", sep="")
-  write.csv(res, name)
-  
-  # calcular rótulo verdadeiro igual a 1
-  true_1 = data.frame(ifelse(trues==1,1,0))
-  total_true_1 = apply(true_1, 2, sum)
-  
-  # calcular rótulo verdadeiro igual a 0
-  true_0 = data.frame(ifelse(trues==0,1,0))
-  total_true_0 = apply(true_0, 2, sum)
-  
-  # calcular rótulo predito igual a 1
-  pred_1 = data.frame(ifelse(preds==1,1,0))
-  total_pred_1 = apply(pred_1, 2, sum)
-  
-  # calcular rótulo verdadeiro igual a 0
-  pred_0 = data.frame(ifelse(preds==0,1,0))
-  total_pred_0 = apply(pred_0, 2, sum)
-  
-  matriz_totais = cbind(total_true_0, total_true_1, total_pred_0, total_pred_1)
-  row.names(matriz_totais) = nomes.rotulos
-  name = paste(folder, "/trues-preds.csv", sep="")
-  write.csv(matriz_totais, name)
-  
-  # Verdadeiro Positivo: O modelo previu 1 e a resposta correta é 1
-  TPi  = data.frame(ifelse((true_1 & true_1),1,0))
-  tpi = paste(nomes.rotulos, "-TP", sep="")
-  names(TPi) = tpi
-  
-  # Verdadeiro Negativo: O modelo previu 0 e a resposta correta é 0
-  TNi  = data.frame(ifelse((true_0 & pred_0),1,0))
-  tni = paste(nomes.rotulos, "-TN", sep="")
-  names(TNi) = tni
-  
-  # Falso Positivo: O modelo previu 1 e a resposta correta é 0
-  FPi  = data.frame(ifelse((true_0 & pred_1),1,0))
-  fpi = paste(nomes.rotulos, "-FP", sep="")
-  names(FPi) = fpi
-  
-  # Falso Negativo: O modelo previu 0 e a resposta correta é 1
-  FNi  = data.frame(ifelse((true_1 & pred_0),1,0))
-  fni = paste(nomes.rotulos, "-FN", sep="")
-  names(FNi) = fni
-  
-  fpnt = data.frame(TPi, FPi, FNi, TNi)
-  name = paste(folder, "/tfpn.csv", sep="")
-  write.csv(fpnt, name, row.names = FALSE)
-  
-  # total de verdadeiros positivos
-  TPl = apply(TPi, 2, sum)
-  tpl = paste(nomes.rotulos, "-TP", sep="")
-  names(TPl) = tpl
-  
-  # total de verdadeiros negativos
-  TNl = apply(TNi, 2, sum)
-  tnl = paste(nomes.rotulos, "-TN", sep="")
-  names(TNl) = tnl
-  
-  # total de falsos negativos
-  FNl = apply(FNi, 2, sum)
-  fnl = paste(nomes.rotulos, "-FN", sep="")
-  names(FNl) = fnl
-  
-  # total de falsos positivos
-  FPl = apply(FPi, 2, sum)
-  fpl = paste(nomes.rotulos, "-FP", sep="")
-  names(FPl) = fpl
-  
-  matriz_confusao_por_rotulos = data.frame(TPl, FPl, FNl, TNl)
-  colnames(matriz_confusao_por_rotulos) = c("TP","FP", "FN", "TN")
-  row.names(matriz_confusao_por_rotulos) = nomes.rotulos
-  name = paste(folder, "/matrix-confusion-2.csv", sep="")
-  write.csv(matriz_confusao_por_rotulos, name)
-  
-}
-
-
-##############################################################################
-# 
-##############################################################################
-roc.curva <- function(f, y_pred, test, Folder, nome){
-  
-  #####################################################################
-  y_pred= sapply(y_pred, function(x) as.numeric(as.character(x)))
-  res = mldr_evaluate(test, y_pred)
-  
-  ###############################################################
-  # PLOTANDO ROC CURVE
-  # name = paste(Folder, "/", nome, "-roc.pdf", sep="")
-  # pdf(name, width = 10, height = 8)
-  # print(plot(res$roc, print.thres = 'best', print.auc=TRUE, 
-  #            print.thres.cex=0.7, grid = TRUE, identity=TRUE,
-  #            axes = TRUE, legacy.axes = TRUE, 
-  #            identity.col = "#a91e0e", col = "#1161d5",
-  #            main = paste("fold ", f, " ", nome, sep="")))
-  # dev.off()
-  # cat("\n")
-  
-  ###############################################################
-  write.csv(as.numeric(res$roc$auc), paste(Folder, "/", nome, "-roc-auc.csv", sep=""))
-  write.csv(as.numeric(res$macro_auc), paste(Folder, "/", nome, "-roc-auc-macro.csv", sep=""))
-  write.csv(as.numeric(res$micro_auc), paste(Folder, "/", nome, "-roc-auc-micro.csv", sep=""))
-  
-  
-  ###############################################################
-  # SALVANDO AS INFORMAÇÕES DO ROC SEPARADAMENTE
-  name = paste(Folder, "/", nome, "-roc-1.txt", sep="")
-  output.file <- file(name, "wb")
-  
-  write(" ", file = output.file, append = TRUE)
-  write("percent: ", file = output.file, append = TRUE)
-  write(res$roc$percent, file = output.file, append = TRUE)
-  
-  write(" ", file = output.file, append = TRUE)
-  write("sensitivities: ", file = output.file, append = TRUE)
-  write(res$roc$sensitivities, file = output.file, append = TRUE)
-  
-  write(" ", file = output.file, append = TRUE)
-  write("specificities: ", file = output.file, append = TRUE)
-  write(res$roc$specificities, file = output.file, append = TRUE)
-  
-  write(" ", file = output.file, append = TRUE)
-  write("thresholds: ", file = output.file, append = TRUE)
-  write(res$roc$thresholds, file = output.file, append = TRUE)
-  
-  write(" ", file = output.file, append = TRUE)
-  write("direction: ", file = output.file, append = TRUE)
-  write(res$roc$direction, file = output.file, append = TRUE)
-  
-  write(" ", file = output.file, append = TRUE)
-  write("cases: ", file = output.file, append = TRUE)
-  write(res$roc$cases, file = output.file, append = TRUE)
-  
-  write(" ", file = output.file, append = TRUE)
-  write("controls: ", file = output.file, append = TRUE)
-  write(res$roc$controls, file = output.file, append = TRUE)
-  
-  write(" ", file = output.file, append = TRUE)
-  write("auc: ", file = output.file, append = TRUE)
-  write(res$roc$auc, file = output.file, append = TRUE)
-  
-  write(" ", file = output.file, append = TRUE)
-  write("original predictor: ", file = output.file, append = TRUE)
-  write(res$roc$original.predictor, file = output.file, append = TRUE)
-  
-  write(" ", file = output.file, append = TRUE)
-  write("original response: ", file = output.file, append = TRUE)
-  write(res$roc$original.response, file = output.file, append = TRUE)
-  
-  write(" ", file = output.file, append = TRUE)
-  write("predictor: ", file = output.file, append = TRUE)
-  write(res$roc$predictor, file = output.file, append = TRUE)
-  
-  write(" ", file = output.file, append = TRUE)
-  write("response: ", file = output.file, append = TRUE)
-  write(res$roc$response, file = output.file, append = TRUE)
-  
-  write(" ", file = output.file, append = TRUE)
-  write("levels: ", file = output.file, append = TRUE)
-  write(res$roc$levels, file = output.file, append = TRUE)
-  
-  close(output.file)
-  
-  ###############################################################
-  # SALVANDO AS OUTRAS INFORMAÇÕES
-  name = paste(Folder, "/", nome, "-roc-2.txt", sep="")
-  sink(name, type = "output")
-  print(res$roc)
-  cat("\n\n")
-  str(res)
-  sink()
-}
-
-
-
-##############################################################################
-# 
-##############################################################################
-matrix.confusao <- function(true, pred, type, salva, nomes.rotulos){ 
-  
-  bipartition = data.frame(true, pred)
-  
-  num.instancias = nrow(bipartition)
-  num.rotulos = ncol(true) # número de rótulos do conjunto
-  
-  num.positive.instances = apply(bipartition, 2, sum) # número de instâncias positivas
-  num.negative.instances = num.instancias - num.positive.instances   # número de instâncias negativas  # salvando
-  
-  res = rbind(num.positive.instances, num.negative.instances)
-  name = paste(salva, "/", type, "-ins-pn.csv", sep="")
-  write.csv(res, name)
-  
-  true_1 = data.frame(ifelse(true==1,1,0)) # calcular rótulo verdadeiro igual a 1
-  total_true_1 = apply(true_1, 2, sum)
-  
-  true_0 = data.frame(ifelse(true==0,1,0)) # calcular rótulo verdadeiro igual a 0
-  total_true_0 = apply(true_0, 2, sum)
-  
-  pred_1 = data.frame(ifelse(pred==1,1,0)) # calcular rótulo predito igual a 1
-  total_pred_1 = apply(pred_1, 2, sum)
-  
-  pred_0 = data.frame(ifelse(pred==0,1,0)) # calcular rótulo verdadeiro igual a 0
-  total_pred_0 = apply(pred_0, 2, sum)
-  
-  matriz_totais = cbind(total_true_0, total_true_1, total_pred_0, total_pred_1)
-  row.names(matriz_totais) = nomes.rotulos
-  name = paste(salva, "/", type, "-trues-preds.csv", sep="")
-  write.csv(matriz_totais, name)
-  
-  # Verdadeiro Positivo: O modelo previu 1 e a resposta correta é 1
-  TPi  = data.frame(ifelse((true_1 & true_1),1,0))
-  tpi = paste(nomes.rotulos, "-TP", sep="")
-  names(TPi) = tpi
-  
-  # Verdadeiro Negativo: O modelo previu 0 e a resposta correta é 0
-  TNi  = data.frame(ifelse((true_0 & pred_0),1,0))
-  tni = paste(nomes.rotulos, "-TN", sep="")
-  names(TNi) = tni
-  
-  # Falso Positivo: O modelo previu 1 e a resposta correta é 0
-  FPi  = data.frame(ifelse((true_0 & pred_1),1,0))
-  fpi = paste(nomes.rotulos, "-FP", sep="")
-  names(FPi) = fpi
-  
-  # Falso Negativo: O modelo previu 0 e a resposta correta é 1
-  FNi  = data.frame(ifelse((true_1 & pred_0),1,0))
-  fni = paste(nomes.rotulos, "-FN", sep="")
-  names(FNi) = fni
-  
-  fpnt = data.frame(TPi, FPi, FNi, TNi)
-  name = paste(salva, "/", type, "-tfpn.csv", sep="")
-  write.csv(fpnt, name, row.names = FALSE)
-  
-  # total de verdadeiros positivos
-  TPl = apply(TPi, 2, sum)
-  tpl = paste(nomes.rotulos, "-TP", sep="")
-  names(TPl) = tpl
-  
-  # total de verdadeiros negativos
-  TNl = apply(TNi, 2, sum)
-  tnl = paste(nomes.rotulos, "-TN", sep="")
-  names(TNl) = tnl
-  
-  # total de falsos negativos
-  FNl = apply(FNi, 2, sum)
-  fnl = paste(nomes.rotulos, "-FN", sep="")
-  names(FNl) = fnl
-  
-  # total de falsos positivos
-  FPl = apply(FPi, 2, sum)
-  fpl = paste(nomes.rotulos, "-FP", sep="")
-  names(FPl) = fpl
-  
-  matriz_confusao_por_rotulos = data.frame(TPl, FPl, FNl, TNl)
-  colnames(matriz_confusao_por_rotulos) = c("TP","FP", "FN", "TN")
-  row.names(matriz_confusao_por_rotulos) = nomes.rotulos
-  name = paste(salva, "/", type, "-matrix-confusion.csv", sep="")
-  write.csv(matriz_confusao_por_rotulos, name)
-}
-
-
-
 avaliacao <- function(f, y_true, y_pred, salva, nome){
   
-  salva.0 = paste(salva, "/", nome, "-conf-mat.txt", sep="")
-  sink(file=salva.0, type="output")
+  #salva.0 = paste(salva, "/", nome, "-conf-mat.txt", sep="")
+  #sink(file=salva.0, type="output")
   confmat = multilabel_confusion_matrix(y_true, y_pred)
-  print(confmat)
-  sink()
+  #print(confmat)
+  #sink()
   
   resConfMat = multilabel_evaluate(confmat)
   resConfMat = data.frame(resConfMat)
   names(resConfMat) = paste("Fold-", f, sep="")
-  salva.1 = paste(salva, "/", nome, "-evaluated.csv", sep="")
+  salva.1 = paste(salva, "/", nome, ".csv", sep="")
   write.csv(resConfMat, salva.1)
   
   conf.mat = data.frame(confmat$TPl, confmat$FPl,
@@ -649,8 +384,7 @@ avaliacao <- function(f, y_true, y_pred, salva, nome){
   conf.mat.2 = data.frame(conf.mat, conf.mat.perc, wrong, correct, 
                           wrong.perc, correct.perc)
   salva.2 = paste(salva, "/", nome, "-utiml.csv", sep="")
-  write.csv(conf.mat.2, salva.2)
-  
+  #write.csv(conf.mat.2, salva.2)
   
 }
 

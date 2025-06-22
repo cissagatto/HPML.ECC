@@ -1,6 +1,6 @@
-cat("\n\n###########################################################")
-  cat("\n# RSCRIPT: START EXECUTE ECC                              #")
-  cat("\n###########################################################\n\n")
+cat("\n###########################################################")
+cat("\n# HPML.ECC: START                                         #")
+cat("\n###########################################################\n\n")
 
 
 # clean
@@ -8,8 +8,8 @@ rm(list=ls())
 
 
 ##############################################################################
-# ECC                                                                        #
-# Copyright (C) 2023                                                         #
+# ENSEMBLE OF CLASSIFIER CHAINS                                              #
+# Copyright (C) 2025                                                         #
 #                                                                            #
 # This code is free software: you can redistribute it and/or modify it under #
 # the terms of the GNU General Public License as published by the Free       #
@@ -19,43 +19,30 @@ rm(list=ls())
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General   #
 # Public License for more details.                                           #
 #                                                                            #
-# PhD Elaine Cecilia Gatto | Prof. Dr. Ricardo Cerri | Prof. Dr. Mauri       #
-# Ferrandin | Prof. Dr. Celine Vens | PhD Felipe Nakano Kenji                #
+# Prof. Elaine Cecilia Gatto - UFLA - Lavras, Minas Gerais, Brazil           #
+# Prof. Ricardo Cerri - USP - São Carlos, São Paulo, Brazil                  #
+# Prof. Mauri Ferrandin - UFSC - Blumenau, Santa Catarina, Brazil            #
+# Prof. Celine Vens - Ku Leuven - Kortrijik, West Flanders, Belgium          #
+# PhD Felipe Nakano Kenji - Ku Leuven - Kortrijik, West Flanders, Belgium    #
 #                                                                            #
-# Federal University of São Carlos - UFSCar - https://www2.ufscar.br         #
-# Campus São Carlos - Computer Department - DC - https://site.dc.ufscar.br   #
-# Post Graduate Program in Computer Science - PPGCC                          # 
-# http://ppgcc.dc.ufscar.br - Bioinformatics and Machine Learning Group      #
 # BIOMAL - http://www.biomal.ufscar.br                                       #
-#                                                                            #
-# Katholieke Universiteit Leuven Campus Kulak Kortrijk Belgium               #
-# Medicine Department - https://kulak.kuleuven.be/                           #
-# https://kulak.kuleuven.be/nl/over_kulak/faculteiten/geneeskunde            #
 #                                                                            #
 ##############################################################################
 
 
-cat("\n################################")
-cat("\n# Set Work Space               #")
-cat("\n###############################\n\n")
-FolderRoot = "~/Ensemble-Classifier-Chains"
-FolderScripts = "~/Ensemble-Classifier-Chains/R"
+
+###############################################################################
+# SET WORKSAPCE                                                               #
+###############################################################################
+library(here)
+library(stringr)
+FolderRoot <- here::here()
+FolderScripts <- here::here("R")
 
 
-cat("\n########################################")
-cat("\n# Loading R Sources                    #")
-cat("\n########################################\n\n")
-
-setwd(FolderScripts)
-source("libraries.R")
-
-setwd(FolderScripts)
-source("utils.R")
-
-
-cat("\n########################################")
-cat("\n# R Options Configuration              #")
-cat("\n########################################\n\n")
+cat("\n############################################")
+cat("\n# HPML.ECC: R Options Configuration        #")
+cat("\n############################################\n\n")
 options(java.parameters = "-Xmx64g")  # JAVA
 options(show.error.messages = TRUE)   # ERROR MESSAGES
 options(scipen=20)                    # number of places after the comma
@@ -66,73 +53,72 @@ parameters = list()
 ########################################
 
 
-cat("\n########################################")
-cat("\n# Reading Datasets-Original.csv        #")
-cat("\n########################################\n\n")
+cat("\n##################################################")
+cat("\n# HPML.ECC: Reading Datasets-Original.csv        #")
+cat("\n##################################################\n\n")
 setwd(FolderRoot)
 datasets <- data.frame(read.csv("datasets-original.csv"))
 parameters$Datasets.List = datasets
 
 
-cat("\n#####################################")
-cat("\n# GET ARGUMENTS FROM COMMAND LINE   #")
-cat("\n#####################################\n\n")
+cat("\n#################################################")
+cat("\n# HPML.ECC: GET ARGUMENTS FROM COMMAND LINE     #")
+cat("\n#################################################\n\n")
 args <- commandArgs(TRUE)
-
-
-
-# config_file = "/home/biomal/Ensemble-Classifier-Chains/config-files-laptop/rf/ecc-GpositiveGO.csv"
-
-
+# config_file = "~/HPML.ECC/config-files/ecc-emotions.csv"
 config_file <- args[1]
-
 
 if(file.exists(config_file)==FALSE){
   cat("\n################################################################")
-  cat("#\n Missing Config File! Verify the following path:              #")
+  cat("#\n HPML.ECC: Missing Config File! Verify the following path:    #")
   cat("#\n ", config_file, "                                            #")
-  cat("#################################################################\n\n")
+  cat("##################################################################\n\n")
   break
 } else {
-  cat("\n########################################")
-  cat("\n# Properly loaded configuration file!  #")
-  cat("\n########################################\n\n")
+  cat("\n###################################################")
+  cat("\n# HPML.ECC: Properly loaded configuration file!   #")
+  cat("\n###################################################\n\n")
 }
 
 
-cat("\n########################################")
-cat("\n# Config File                          #\n")
+cat("\n##################################################")
+cat("\n# HPML.ECC: Config File                          #")
+cat("\n##################################################\n\n")
 config = data.frame(read.csv(config_file))
 print(config)
-cat("\n########################################\n\n")
 
 
-cat("\n########################################")
-cat("\n# Getting Parameters                   #\n")
-cat("\n########################################")
-dataset_path = toString(config$Value[1])
+
+cat("\n##################################################")
+cat("\n# HPML.ECC: Getting Parameters                   #\n")
+cat("\n##################################################")
+FolderScripts = toString(config$Value[1])
+FolderScripts = str_remove(FolderScripts, pattern = " ")
+parameters$Config.File$FolderScripts = FolderScripts
+
+dataset_path = toString(config$Value[2])
 dataset_path = str_remove(dataset_path, pattern = " ")
 parameters$Config.File$Dataset.Path = dataset_path
 
-folderResults = toString(config$Value[2]) 
+folderResults = toString(config$Value[3]) 
 folderResults = str_remove(folderResults, pattern = " ")
 parameters$Config.File$Folder.Results = folderResults
 
-implementation = toString(config$Value[3])
+implementation = toString(config$Value[4])
 implementation = str_remove(implementation, pattern = " ")
 parameters$Config.File$Implementation = implementation
 
-dataset_name = toString(config$Value[4])
+dataset_name = toString(config$Value[5])
 dataset_name = str_remove(dataset_name, pattern = " ")
 parameters$Config.File$Dataset.Name = dataset_name
 
-number_dataset = as.numeric(config$Value[5])
+number_dataset = as.numeric(config$Value[6])
 parameters$Config.File$Number.Dataset = number_dataset
 
-number_folds = as.numeric(config$Value[6])
+number_folds = as.numeric(config$Value[7])
 parameters$Config.File$Number.Folds = number_folds
 
-number_cores = as.numeric(config$Value[7])
+number_cores = as.numeric(config$Value[8])
 parameters$Config.File$Number.Cores = number_cores
 
 ds = datasets[number_dataset,]
@@ -144,15 +130,24 @@ print(ds)
 cat("\n################################################################\n\n")
 
 
-cat("\n########################################")
-cat("\n# Creating temporary processing folder #")
-cat("\n########################################\n\n")
+cat("\n#####################################################")
+cat("\n# HPML.ECC: Creating temporary processing folder    #")
+cat("\n#####################################################\n\n")
 if (dir.exists(folderResults) == FALSE) {dir.create(folderResults)}
 
 
-cat("\n###############################\n")
-cat("\n# Get directories             #")
-cat("\n###############################\n\n")
+
+cat("\n##################################################")
+cat("\n# HPML.ECC: Loading R Sources                    #")
+cat("\n##################################################\n\n")
+source(file.path(FolderScripts, "libraries.R"))
+source(file.path(FolderScripts, "utils.R"))
+
+
+
+cat("\n#########################################\n")
+cat("\n# HPML.ECC: Get directories             #")
+cat("\n#########################################\n\n")
 diretorios <- directories(parameters)
 parameters$Directories = diretorios
 
@@ -263,119 +258,103 @@ if(implementation=="utiml"){
   
 } else if(implementation=="rf"){
   
-  setwd(FolderScripts)
-  source("run-python.R")
+  source(file.path(FolderScripts, "run-python.R"))
   
-  cat("\n\n############################################################")
-    cat("\n# RSCRIPT ECC START                                     #")
-    cat("\n############################################################\n\n")
+  cat("\n#########################################################")
+  cat("\n# HPML.ECC:ECC START                                    #")
+  cat("\n#########################################################\n\n")
   timeFinal <- system.time(results <- run.ecc.python(parameters))  
   
   
-  cat("\n\n#####################################################")
-    cat("\n# RSCRIPT SAVE RUNTIME                              #")
-    cat("\n#####################################################\n\n")
-  result_set <- t(data.matrix(timeFinal))
-  setwd(diretorios$folderECC)
-  write.csv(result_set, "Final-Runtime.csv")
-  
-  
-  cat("\n\n###################################################")
-    cat("\n# RSCRIPT DELETE                                  #")
-    cat("\n###################################################\n\n")
-  str5 = paste("rm -r ", diretorios$folderDataset, sep="")
-  print(system(str5))
-  
-  
-  cat("\n\n###################################################################")
-  cat("\n# ECC: COMPRESS RESULTS                                      #")
-  cat("\n#####################################################################\n\n")
-  str3 = paste("tar -zcvf ", parameters$Directories$folderECC , "/",
-               parameters$Dataset.Info$Name, "-results-ecc.tar.gz ",
-               parameters$Directories$folderECC, sep="")
-  print(system(str3))
-  
-  
-  cat("\n\n###################################################################")
-  cat("\n# ====> GPC: COPY TO HOME                                     #")
-  cat("\n#####################################################################\n\n")
-  
-  str0 = "~/Ensemble-Classifier-Chains/Reports/"
-  if(dir.exists(str0)==FALSE){dir.create(str0)}
-  
-  str3 = paste(parameters$Directories$folderECC, "/",
-               dataset_name, "-results-ecc.tar.gz", sep="")
-  
-  str4 = paste("cp ", str3, " ", str0, sep="")
-  print(system(str4))
-  
-  
-  
-  cat("\n\n######################################################")
-    cat("\n# RSCRIPT COPY TO GOOGLE DRIVE                       #")
-    cat("\n######################################################\n\n")
-  origem = diretorios$folderECC
-  destino = paste("nuvem:ECC/RandomForests/", dataset_name, sep="")
-  comando = paste("rclone -P copy ", origem, " ", destino, sep="")
-  cat("\n", comando, "\n") 
-  a = print(system(comando))
-  a = as.numeric(a)
-  if(a != 0) {
-    stop("Erro RCLONE")
-    quit("yes")
-  }
-  
-} else {
-  
-  
-  setwd(FolderScripts)
-  source("run-mulan.R")
-  
-  
-  cat("\n\n############################################################")
-  cat("\n# RSCRIPT ECC START                                     #")
-  cat("\n############################################################\n\n")
-  timeFinal <- system.time(results <- run.ecc.mulan(ds, 
-                                                    dataset_name,
-                                                    number_dataset, 
-                                                    number_cores, 
-                                                    number_folds, 
-                                                    folderResults))  
-  
-  
-  
-  cat("\n\n#####################################################")
-  cat("\n# RSCRIPT SAVE RUNTIME                              #")
+  cat("\n#####################################################")
+  cat("\n# HPML.ECC: SAVE RUNTIME                            #")
   cat("\n#####################################################\n\n")
   result_set <- t(data.matrix(timeFinal))
   setwd(diretorios$folderECC)
   write.csv(result_set, "Runtime-Final.csv")
-  x.minutos = (1 * as.numeric(result_set[3]))/60
-  setwd(diretorios$folderECC)
-  write(x.minutos, "minutos.txt")
   
   
-  cat("\n\n#################################################")
-  cat("\n# RSCRIPT DELETE                                  #")
+  cat("\n###################################################")
+  cat("\n# HPML.ECC: DELETE ALL TEMPORARY FILES            #")
   cat("\n###################################################\n\n")
   str5 = paste("rm -r ", diretorios$folderDataset, sep="")
   print(system(str5))
   
   
-  cat("\n\n######################################################")
-    cat("\n# RSCRIPT COPY TO GOOGLE DRIVE                       #")
-    cat("\n######################################################\n\n")
-  origem = diretorios$folderECC
-  destino = paste("nuvem:ECC/Mulan/", dataset_name, sep="")
-  comando = paste("rclone -P copy ", origem, " ", destino, sep="")
-  cat("\n", comando, "\n") 
-  a = print(system(comando))
-  a = as.numeric(a)
-  if(a != 0) {
-    stop("Erro RCLONE")
-    quit("yes")
-  }
+  cat("\n##############################################################")
+  cat("\n# HPML.ECC: COMPRESS RESULTS                                 #")
+  cat("\n##############################################################\n\n")
+  str3 <- paste0(
+    "tar -zcvf /tmp/ecc-emotions/",
+    parameters$Dataset.Info$Name, "-results-ecc.tar.gz ",
+    parameters$Directories$folderECC
+  )
+  print(system(str3))
   
+  cat("\n##########################################################")
+  cat("\n# ECC: COPY TO HOME                                      #")
+  cat("\n##########################################################\n\n")
+  
+  str0 = paste0(FolderRoot, "/Reports")
+  if(dir.exists(str0)==FALSE){dir.create(str0)}
+  
+  str3 = paste(parameters$Directories$folderResults , "/",
+               dataset_name, "-results-ecc.tar.gz", sep="")
+  
+  str4 = paste("cp ", str3, " ", str0, sep="")
+  print(system(str4))
+  
+} else {
+  
+  # 
+  # setwd(FolderScripts)
+  # source("run-mulan.R")
+  # 
+  # 
+  # cat("\n\n############################################################")
+  # cat("\n# RSCRIPT ECC START                                     #")
+  # cat("\n############################################################\n\n")
+  # timeFinal <- system.time(results <- run.ecc.mulan(ds, 
+  #                                                   dataset_name,
+  #                                                   number_dataset, 
+  #                                                   number_cores, 
+  #                                                   number_folds, 
+  #                                                   folderResults))  
+  # 
+  # 
+  # 
+  # cat("\n\n#####################################################")
+  # cat("\n# RSCRIPT SAVE RUNTIME                              #")
+  # cat("\n#####################################################\n\n")
+  # result_set <- t(data.matrix(timeFinal))
+  # setwd(diretorios$folderECC)
+  # write.csv(result_set, "Runtime-Final.csv")
+  # x.minutos = (1 * as.numeric(result_set[3]))/60
+  # setwd(diretorios$folderECC)
+  # write(x.minutos, "minutos.txt")
+  # 
+  # 
+  # cat("\n\n#################################################")
+  # cat("\n# RSCRIPT DELETE                                  #")
+  # cat("\n###################################################\n\n")
+  # str5 = paste("rm -r ", diretorios$folderDataset, sep="")
+  # print(system(str5))
+  # 
+  # 
+  # cat("\n\n######################################################")
+  #   cat("\n# RSCRIPT COPY TO GOOGLE DRIVE                       #")
+  #   cat("\n######################################################\n\n")
+  # origem = diretorios$folderECC
+  # destino = paste("nuvem:ECC/Mulan/", dataset_name, sep="")
+  # comando = paste("rclone -P copy ", origem, " ", destino, sep="")
+  # cat("\n", comando, "\n") 
+  # a = print(system(comando))
+  # a = as.numeric(a)
+  # if(a != 0) {
+  #   stop("Erro RCLONE")
+  #   quit("yes")
+  # }
+  # 
   
   
 } 
@@ -402,17 +381,17 @@ if(implementation=="utiml"){
 
 
 
-cat("\n\n#######################################################")
-  cat("\n# CLEAN                                               #")
-  cat("\n#######################################################\n\n")
+cat("\n#######################################################")
+cat("\n# CLEAN                                               #")
+cat("\n#######################################################\n\n")
 cat("\nDelete folder \n")
 str5 = paste("rm -r ", folderResults, sep="")
 print(system(str5))
 
 
-cat("\n\n################################################################")
-  cat("\n# RSCRIPT SUCCESSFULLY FINISHED                                #")
-  cat("\n################################################################\n\n")
+cat("\n################################################################")
+cat("\n# RSCRIPT SUCCESSFULLY FINISHED                                #")
+cat("\n################################################################\n\n")
 
 
 rm(list = ls())

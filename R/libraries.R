@@ -1,6 +1,6 @@
 ##############################################################################
-# BEST PARTITION SILHOUETTE ECC                                              #
-# Copyright (C) 2022                                                         #
+# ENSEMBLE OF CLASSIFIER CHAINS                                              #
+# Copyright (C) 2025                                                         #
 #                                                                            #
 # This code is free software: you can redistribute it and/or modify it under #
 # the terms of the GNU General Public License as published by the Free       #
@@ -10,44 +10,60 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General   #
 # Public License for more details.                                           #
 #                                                                            #
-# Elaine Cecilia Gatto | Prof. Dr. Ricardo Cerri | Prof. Dr. Mauri           #
-# Ferrandin | Federal University of Sao Carlos                               #
-# (UFSCar: https://www2.ufscar.br/) Campus Sao Carlos | Computer Department  #
-# (DC: https://site.dc.ufscar.br/) | Program of Post Graduation in Computer  #
-# Science (PPG-CC: http://ppgcc.dc.ufscar.br/) | Bioinformatics and Machine  #
-# Learning Group (BIOMAL: http://www.biomal.ufscar.br/)                      #
+# Prof. Elaine Cecilia Gatto - UFLA - Lavras, Minas Gerais, Brazil           #
+# Prof. Ricardo Cerri - USP - São Carlos, São Paulo, Brazil                  #
+# Prof. Mauri Ferrandin - UFSC - Blumenau, Santa Catarina, Brazil            #
+# Prof. Celine Vens - Ku Leuven - Kortrijik, West Flanders, Belgium          #
+# PhD Felipe Nakano Kenji - Ku Leuven - Kortrijik, West Flanders, Belgium    #
+#                                                                            #
+# BIOMAL - http://www.biomal.ufscar.br                                       #
 #                                                                            #
 ##############################################################################
 
 
-###########################################################################
-#
-###########################################################################
-FolderRoot = "~/Ensemble-Classifier-Chains"
-FolderScripts = "~/Ensemble-Classifier-Chains/R"
 
+##############################################################################
+# AUTO-INSTALL AND LOAD REQUIRED PACKAGES FOR MULTI-LABEL SCRIPT (v2025)
+##############################################################################
 
+# Load 'here' package and define project root folders
+if (!require("here", quietly = TRUE)) install.packages("here", dependencies = TRUE)
+library(here)
+FolderRoot <- here::here()
+FolderScripts <- here::here("R")
 
-######################################################################
-# Load Packages    
-######################################################################
+# List of required CRAN packages
+cran_packages <- c(
+  "foreign", "stringr", "tidyverse", "parallel", "rJava",
+  "RWeka", "mldr", "utiml", "foreach", "doParallel", "caTools"
+)
 
-library("foreign", quietly = TRUE)
-library("stringr", quietly = TRUE)
-# library("tidyverse", quietly = TRUE)
-# library("lme4", quietly = TRUE)
-# library("caret")
-# library("lubridate", quietly = TRUE)
-# library("dplyr", quietly = TRUE)
-library("tidyverse")
-library("parallel", quietly = TRUE)
-library("rJava", quietly = TRUE)
-library("RWeka", quietly = TRUE)
-library("mldr", quietly = TRUE)
-library("utiml", quietly = TRUE)
-library("foreach", quietly = TRUE)
-library("doParallel", quietly = TRUE)
-library("caTools", quietly = TRUE)
+# Function to install and load packages
+install_and_load <- function(pkg) {
+  if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
+    message(paste("Installing package:", pkg))
+    tryCatch({
+      install.packages(pkg, dependencies = TRUE)
+      library(pkg, character.only = TRUE, quietly = TRUE)
+      message(paste("✅ Package", pkg, "successfully installed and loaded."))
+    }, error = function(e) {
+      message(paste("❌ Error installing package", pkg, ":", e$message))
+    })
+  } else {
+    message(paste("✅ Package", pkg, "is already installed and loaded."))
+  }
+}
+
+# Install and load all CRAN packages
+invisible(lapply(cran_packages, install_and_load))
+
+message("🎉 All packages have been successfully verified and loaded!")
+
+##############################################################################
+# Please, any errors, contact us: elainececiliagatto@gmail.com
+# Thank you very much!
+##############################################################################
+
 
 
 #############################################################################
