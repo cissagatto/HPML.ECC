@@ -90,10 +90,10 @@ while(w<=length(Implementation.1)){
     # Config file table header
     write("Config, Value", file = output.file, append = TRUE)
     
-    write("FolderScripts, ~/HPML.ECC/R", 
+    write("FolderScripts, /lapix/arquivos/elaine/HPML.ECC/R", 
           file = output.file, append = TRUE)
     
-    write("Dataset_Path,  ~/HPML.ECC/Datasets", 
+    write("Dataset_Path, /lapix/arquivos/elaine/HPML.ECC/Datasets", 
           file = output.file, append = TRUE)
     
     temp.name = paste("/tmp/", name, sep = "")

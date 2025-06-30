@@ -28,10 +28,11 @@ import io
 
 from ecc import ECC
 
-FolderRoot = os.path.expanduser('~/HPML.ECC/Python')
-os.chdir(FolderRoot)
-current_directory = os.getcwd()
-sys.path.append('..')
+#FolderRoot = os.path.expanduser('/lapix/arquivos/elaine/HPML.ECC/Python')
+#os.chdir(FolderRoot)
+#current_directory = os.getcwd()
+#sys.path.append('..')
+
 
 import joblib
 import pickle
@@ -59,7 +60,7 @@ if __name__ == '__main__':
     test_path = sys.argv[3]    # test CSV path
     start_label = int(sys.argv[4])  # starting index for labels
     output_dir = sys.argv[5]   # output directory
-    fold = sys.argv[6]         # fold name or identifier (se precisar)
+    #fold = sys.argv[6]         # fold name or identifier (se precisar)
 
     #train_path = "/tmp/ecc-emotions/Dataset/emotions/CrossValidation/Tr/emotions-Split-Tr-1.csv"
     #valid_path = "/tmp/ecc-emotions/Dataset/emotions/CrossValidation/Vl/emotions-Split-Vl-1.csv"
@@ -68,14 +69,14 @@ if __name__ == '__main__':
     #output_dir = "/tmp/ecc-emotions/ECC/Split-1"
     #fold  = 1
 
-    print("\n\n%==============================================%")
-    print("train: ", sys.argv[1])
-    print("valid: ", sys.argv[2])
-    print("test: ", sys.argv[3])
-    print("label start: ", sys.argv[4])
-    print("output_dir: ", sys.argv[5])
-    print("fold: ", sys.argv[6])
-    print("%==============================================%\n\n")
+    #print("\n\n%==============================================%")
+    #print("train: ", sys.argv[1])
+    #print("valid: ", sys.argv[2])
+    #print("test: ", sys.argv[3])
+    #print("label start: ", sys.argv[4])
+    #print("output_dir: ", sys.argv[5])
+    #print("fold: ", sys.argv[6])
+    #print("%==============================================%\n\n")
 
     # =========== LEITURA DOS DADOS ===========
     train_df = pd.read_csv(train_path)
@@ -184,7 +185,7 @@ if __name__ == '__main__':
     #print("Total train time:", model.train_time_total)
 
     # =========== EVALUATION ===========          
-    res_curves = eval.multilabel_curves_measures(Y_test, probas_df)    
+    res_curves = eval.multilabel_curve_metrics(Y_test, probas_df)    
     name = (output_dir + "/results-python.csv") 
     res_curves.to_csv(name, index=False)    
     

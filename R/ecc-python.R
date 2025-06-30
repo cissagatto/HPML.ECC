@@ -84,6 +84,8 @@ execute.ecc.python <- function(parameters){
     mldr.val = mldr_from_dataframe(val, labelIndices = labels.indices)
     mldr.tv = mldr_from_dataframe(tv, labelIndices = labels.indices)
     
+    
+    
     ##################################################################
     # EXECUTE ECC PYTHON
     str.execute = paste("python3 ", parameters$Directories$FolderPython,
@@ -93,7 +95,7 @@ execute.ecc.python <- function(parameters){
                         test.file.name, " ", 
                         start = as.numeric(parameters$Dataset.Info$AttEnd), " ", 
                         FolderSplit, " ", 
-                        fold = f,
+                        #fold = f,
                         sep="")
     
     start <- proc.time()
@@ -305,14 +307,14 @@ gather.eval.python.silho <- function(parameters){
     all.time.train = cbind(all.time.train.chains, res.time.train)
     
     ###########################################################################
-    system(paste0("rm -r ", folderSplit, "/results-python.csv", sep=""))
-    system(paste0("rm -r ", folderSplit, "/results-utiml.csv", sep=""))
-    system(paste0("rm -r ", folderSplit, "/model_sizes_chains.csv", sep=""))
-    system(paste0("rm -r ", folderSplit, "/model_sizes_total.csv", sep=""))
-    system(paste0("rm -r ", folderSplit, "/time_test.csv", sep=""))
-    system(paste0("rm -r ", folderSplit, "/time_train_chains.csv", sep=""))
-    system(paste0("rm -r ", folderSplit, "/time_train_total.csv", sep=""))
-    system(paste0("rm -r ", folderSplit, "/runtime-fold.csv", sep=""))
+    system(paste("rm -r ", folderSplit, "/results-python.csv", sep=""))
+    system(paste("rm -r ", folderSplit, "/results-utiml.csv", sep=""))
+    system(paste("rm -r ", folderSplit, "/model_sizes_chains.csv", sep=""))
+    system(paste("rm -r ", folderSplit, "/model_sizes_total.csv", sep=""))
+    system(paste("rm -r ", folderSplit, "/time_test.csv", sep=""))
+    system(paste("rm -r ", folderSplit, "/time_train_chains.csv", sep=""))
+    system(paste("rm -r ", folderSplit, "/time_train_total.csv", sep=""))
+    system(paste("rm -r ", folderSplit, "/runtime-fold.csv", sep=""))
     
     f = f + 1
     gc()
@@ -321,7 +323,6 @@ gather.eval.python.silho <- function(parameters){
   
   setwd(parameters$Directories$folderECC)
   final.results <- final.results[, !duplicated(colnames(final.results))]
-  final.results = final.results[,-1]
   write.csv(final.results, "performance.csv", row.names = FALSE)
   
   all.model.size.chains <- all.model.size.chains[, !duplicated(colnames(all.model.size.chains))]

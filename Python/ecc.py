@@ -24,10 +24,10 @@ import sys
 import platform
 import os
 
-FolderRoot = os.path.expanduser('~/HPML.ECC/Python')
-os.chdir(FolderRoot)
-current_directory = os.getcwd()
-sys.path.append('..')
+#FolderRoot = os.path.expanduser('/lapix/arquivos/elaine/HPML.ECC/Python')
+#os.chdir(FolderRoot)
+#current_directory = os.getcwd()
+#sys.path.append('..')
 
 import time
 import io
