@@ -66,7 +66,7 @@ cat("\n# HPML.ECC: GET ARGUMENTS FROM COMMAND LINE     #")
 cat("\n#################################################\n\n")
 args <- commandArgs(TRUE)
 
-# config_file = "~/HPML.ECC/config-files/ecc-emotions.csv"
+#config_file = "~/HPML.ECC/config-files/ecc-emotions-1.csv"
 
 config_file <- args[1]
 
@@ -287,12 +287,17 @@ if(implementation=="utiml"){
   cat("\n##############################################################")
   cat("\n# HPML.ECC: COMPRESS RESULTS                                 #")
   cat("\n##############################################################\n\n")
-  str3 <- paste0(
-    "tar -zcvf /tmp/ecc-emotions/",
+  str3 <- paste0(    
+    "tar -zcvf ", parameters$Directories$folderResults, "/",
     parameters$Dataset.Info$Name, "-results-ecc.tar.gz ",
     parameters$Directories$folderECC
   )
-  print(system(str3))
+  print(str3)
+  res = system(str3)
+  if (res != 0) {
+    cat("\nError: ", str03)
+    break
+  }
   
   cat("\n##########################################################")
   cat("\n# ECC: COPY TO HOME                                      #")
@@ -301,11 +306,16 @@ if(implementation=="utiml"){
   str0 = paste0(FolderRoot, "/Reports")
   if(dir.exists(str0)==FALSE){dir.create(str0)}
   
-  str3 = paste(parameters$Directories$folderResults , "/",
-               dataset_name, "-results-ecc.tar.gz", sep="")
+  str4 <- paste0(parameters$Directories$folderResults, "/",
+    parameters$Dataset.Info$Name, "-results-ecc.tar.gz")
   
-  str4 = paste("cp ", str3, " ", str0, sep="")
-  print(system(str4))
+  str5 = paste("cp ", str4, " ", str0, sep="")
+  print(str5)
+  res = system(str5)
+  if (res != 0) {
+    cat("\nError: ", str05)
+    break
+  }
   
 } else {
   
