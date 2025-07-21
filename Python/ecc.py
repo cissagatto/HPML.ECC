@@ -23,20 +23,22 @@
 import sys
 import platform
 import os
+import time
+import io
+import pickle
 
 #FolderRoot = os.path.expanduser('/lapix/arquivos/elaine/HPML.ECC/Python')
 #os.chdir(FolderRoot)
 #current_directory = os.getcwd()
 #sys.path.append('..')
 
-import time
-import io
-import pickle
+
 import numpy as np
 import pandas as pd
+
 from sklearn.base import clone
 from sklearn.multioutput import ClassifierChain
-import os
+
 
 class ECC:
     """

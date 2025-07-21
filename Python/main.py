@@ -20,7 +20,6 @@
 #                                                                            #
 ##############################################################################
 
-
 import sys
 import platform
 import os
@@ -33,7 +32,6 @@ from ecc import ECC
 #current_directory = os.getcwd()
 #sys.path.append('..')
 
-
 import joblib
 import pickle
 import time
@@ -43,8 +41,8 @@ from joblib import dump
 import pandas as pd
 import numpy as np
 
-from skmultilearn.problem_transform import BinaryRelevance
 from sklearn.ensemble import RandomForestClassifier  
+from sklearn.multioutput import ClassifierChain
 
 import evaluation as eval
 importlib.reload(eval)

@@ -66,7 +66,7 @@ cat("\n# HPML.ECC: GET ARGUMENTS FROM COMMAND LINE     #")
 cat("\n#################################################\n\n")
 args <- commandArgs(TRUE)
 
-#config_file = "~/HPML.ECC/config-files/ecc-emotions-1.csv"
+# config_file = "~/HPML.ECC/config-files/ecc-corel5k-1.csv"
 
 config_file <- args[1]
 
