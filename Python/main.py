@@ -114,7 +114,8 @@ if __name__ == '__main__':
         
     # =========== PREDICT ===========        
     start_time_proba = time.time()     
-    proba = model.predict_proba(X_test)    
+    # proba = model.predict_proba(X_test)    
+    proba = eval.safe_predict_proba(model, X_test)
     end_time_proba = time.time()
     test_duration_proba = end_time_proba - start_time_proba  
 
@@ -184,8 +185,16 @@ if __name__ == '__main__':
     #print("Train chain times:", model.chain_train_times)
     #print("Total train time:", model.train_time_total)
 
-    # =========== EVALUATION ===========          
-    res_curves = eval.multilabel_curve_metrics(Y_test, probas_df)    
+    # =========== SAVE MEASURES ===========   
+    #res_curves = eval.multilabel_curve_metrics(Y_test, probas_df)    
+    #name = (output_dir + "/results-python.csv") 
+    #res_curves.to_csv(name, index=False)  
+
+    metrics_df, ignored_df = eval.multilabel_curve_metrics(Y_test, probas_df)
+    
     name = (output_dir + "/results-python.csv") 
-    res_curves.to_csv(name, index=False)    
+    metrics_df.to_csv(name, index=False)  
+
+    name = (output_dir + "/ignored-classes.csv") 
+    ignored_df.to_csv(name, index=False)  
     
