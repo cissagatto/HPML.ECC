@@ -114,15 +114,15 @@ if __name__ == '__main__':
     # =========== PREDICT PROBA ===========        
     start_time_proba = time.time()     
     # proba = model.predict_proba(X_test)    
-    proba = eval.safe_predict_proba_ecc(model, X_test, Y_train)
+    proba = ECC.safe_predict_proba_ecc(model, X_test, Y_train)
     end_time_proba = time.time()
     test_duration_proba = end_time_proba - start_time_proba  
 
     # =========== PREDICT BIN===========
-    start_time_test_bin = time.time()
-    bin = model.predict(X_test)
-    end_time_test_bin = time.time()
-    test_duration_bin = end_time_test_bin - start_time_test_bin        
+    #start_time_test_bin = time.time()
+    #bin = model.predict(X_test)
+    #end_time_test_bin = time.time()
+    #test_duration_bin = end_time_test_bin - start_time_test_bin        
 
     #start_time_card = time.time()     
     #card = model.predict_cardinality(X_test, Y_train)
@@ -132,8 +132,8 @@ if __name__ == '__main__':
     # =========== SAVE TIME PREDICT ===========
     times_df = pd.DataFrame({        
         'train_duration': [train_duration],
-        'test_duration_proba': [test_duration_proba],
-        'test_duration_bin': [test_duration_bin]
+        'test_duration_proba': [test_duration_proba]
+        #'test_duration_bin': [test_duration_bin]
     })
     times_path = os.path.join(output_dir, "runtime-python.csv")
     times_df.to_csv(times_path, index=False)
