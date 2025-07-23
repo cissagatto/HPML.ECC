@@ -95,7 +95,7 @@ execute.ecc.python <- function(parameters){
                         test.file.name, " ", 
                         start = as.numeric(parameters$Dataset.Info$AttEnd), " ", 
                         FolderSplit, " ", 
-                        #fold = f,
+                        fold = f,
                         sep="")
     
     start <- proc.time()

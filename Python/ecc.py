@@ -261,3 +261,4 @@ class ECC:
         self.total_model_size = sum(sizes)
         return self.chain_model_sizes, self.total_model_size  
         
+

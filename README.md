@@ -7,7 +7,7 @@ If you use this code in your research, please cite the following:
 ```bibtex
 @misc{Gatto2025,
   author = {Gatto, E. C.},
-  title = {Ensemble of Classifier Chains},
+  title = {Ensemble of Classifier Chains with R and Python},
   year = {2025},
   publisher = {GitHub},
   journal = {GitHub repository},
@@ -157,7 +157,7 @@ Rscript ecc.R [absolute_path_to_config_file]
 Example:
 
 ```
-Rscript ecc.R "~/HPML.ECC/R/config-files/ecc-emotion.csv"
+Rscript ecc.R "~/HPML.ECC/config-files/ecc-emotion.csv"
 ```
 
 ## DOWNLOAD RESULTS

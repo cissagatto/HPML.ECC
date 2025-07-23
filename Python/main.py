@@ -58,22 +58,22 @@ if __name__ == '__main__':
     test_path = sys.argv[3]    # test CSV path
     start_label = int(sys.argv[4])  # starting index for labels
     output_dir = sys.argv[5]   # output directory
-    #fold = sys.argv[6]         # fold name or identifier (se precisar)
+    # fold = sys.argv[6]         # fold name or identifier (se precisar)
 
-    #train_path = "/tmp/ecc-emotions/Dataset/emotions/CrossValidation/Tr/emotions-Split-Tr-1.csv"
-    #valid_path = "/tmp/ecc-emotions/Dataset/emotions/CrossValidation/Vl/emotions-Split-Vl-1.csv"
-    #test_path = "/tmp/ecc-emotions/Dataset/emotions/CrossValidation/Ts/emotions-Split-Ts-1.csv"
-    #start_label = 72 
-    #output_dir = "/tmp/ecc-emotions/ECC/Split-1"
-    #fold  = 1
+    train_path = "/tmp/ecc-GnegativeGO/Dataset/GnegativeGO/CrossValidation/Tr/GnegativeGO-Split-Tr-1.csv"
+    valid_path = "/tmp/ecc-GnegativeGO/Dataset/GnegativeGO/CrossValidation/Vl/GnegativeGO-Split-Vl-1.csv"
+    test_path = "/tmp/ecc-GnegativeGO/Dataset/GnegativeGO/CrossValidation/Ts/GnegativeGO-Split-Ts-1.csv"
+    start_label = 1717
+    output_dir = "/tmp/ecc-GnegativeGO/ECC/Split-1"
+    fold  = 1 
 
-    #print("\n\n%==============================================%")
+    # print("\n\n%==============================================%")
     #print("train: ", sys.argv[1])
     #print("valid: ", sys.argv[2])
     #print("test: ", sys.argv[3])
     #print("label start: ", sys.argv[4])
     #print("output_dir: ", sys.argv[5])
-    #print("fold: ", sys.argv[6])
+    # print("Fold: ", sys.argv[6])
     #print("%==============================================%\n\n")
 
     # =========== LEITURA DOS DADOS ===========
@@ -105,50 +105,47 @@ if __name__ == '__main__':
     rf_base = RandomForestClassifier(n_estimators=n_estimators, random_state=random_state)
     model = ECC(rf_base, n_chains=n_chains)
 
-
     # =========== TRAIN ===========    
+    start_time_train = time.time()     
     model.fit(X_train, Y_train)
-
+    end_time_train = time.time()
+    train_duration = end_time_train - start_time_train
         
-    # =========== PREDICT ===========        
+    # =========== PREDICT PROBA ===========        
     start_time_proba = time.time()     
     # proba = model.predict_proba(X_test)    
-    proba = eval.safe_predict_proba(model, X_test)
+    proba = eval.safe_predict_proba_ecc(model, X_test, Y_train)
     end_time_proba = time.time()
     test_duration_proba = end_time_proba - start_time_proba  
 
-    start_time_bin = time.time()     
-    pred = model.predict(X_test)
-    end_time_bin = time.time()
-    test_duration_bin = end_time_bin - start_time_bin
+    # =========== PREDICT BIN===========
+    start_time_test_bin = time.time()
+    bin = model.predict(X_test)
+    end_time_test_bin = time.time()
+    test_duration_bin = end_time_test_bin - start_time_test_bin        
 
-    start_time_card = time.time()     
-    card = model.predict_cardinality(X_test, Y_train)
-    end_time_card = time.time()
-    test_duration_card = end_time_card - start_time_card
+    #start_time_card = time.time()     
+    #card = model.predict_cardinality(X_test, Y_train)
+    #end_time_card = time.time()
+    #test_duration_card = end_time_card - start_time_card
 
-    # criando o DataFrame
-    df = pd.DataFrame({
-        'Test_Type': ['predict_proba', 'predict_bin', 'predict_cardinality'],
-        'Duration_seconds': [test_duration_proba, test_duration_bin, test_duration_card]
+    # =========== SAVE TIME PREDICT ===========
+    times_df = pd.DataFrame({        
+        'train_duration': [train_duration],
+        'test_duration_proba': [test_duration_proba],
+        'test_duration_bin': [test_duration_bin]
     })
-    
-    test_time_path = os.path.join(output_dir, "time_test.csv")    
-    df.to_csv(test_time_path, index=False)
-
+    times_path = os.path.join(output_dir, "runtime-python.csv")
+    times_df.to_csv(times_path, index=False)
 
     # =========== SAVE PREDICTIONS ===========   
-    probas_df = pd.DataFrame(proba, columns=labels_y_test)
+    # probas_df = pd.DataFrame(proba, columns=labels_y_test)
     probas_path = os.path.join(output_dir, "y_pred_proba.csv")
-    probas_df.to_csv(probas_path, index=False)
+    proba.to_csv(probas_path, index=False)   
 
-    #bin_df = pd.DataFrame(bin, columns=labels_y_test)
-    #bin_path = os.path.join(output_dir, "y_pred_bin.csv")
-    #bin_df.to_csv(bin_path, index=False)
-
-    #card_df = pd.DataFrame(card, columns=labels_y_test)
-    #card_path = os.path.join(output_dir, "y_pred_card.csv")
-    #card_df.to_csv(card_path, index=False)
+    bin_df = pd.DataFrame(bin, columns=labels_y_test)
+    bin_path = os.path.join(output_dir, "bin_python.csv")
+    bin_df.to_csv(bin_path, index=False)   
 
     Y_test.to_csv(os.path.join(output_dir, 'y_true.csv'), index=False)
     
@@ -184,15 +181,8 @@ if __name__ == '__main__':
     #print("Total train time:", model.train_time_total)
 
     # =========== SAVE MEASURES ===========   
-    #res_curves = eval.multilabel_curve_metrics(Y_test, probas_df)    
-    #name = (output_dir + "/results-python.csv") 
-    #res_curves.to_csv(name, index=False)  
-
-    metrics_df, ignored_df = eval.multilabel_curve_metrics(Y_test, probas_df)
-    
+    metrics_df, ignored_df = eval.multilabel_curve_metrics(Y_test, proba)    
     name = (output_dir + "/results-python.csv") 
     metrics_df.to_csv(name, index=False)  
-
     name = (output_dir + "/ignored-classes.csv") 
     ignored_df.to_csv(name, index=False)  
-    

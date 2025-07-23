@@ -34,6 +34,12 @@ import os
 #current_directory = os.getcwd()
 #sys.path.append('..')
 
+from collections import Counter
+from sklearn.utils.multiclass import type_of_target
+
+import warnings
+from sklearn.exceptions import UndefinedMetricWarning
+
 
 import pandas as pd
 import numpy as np
@@ -572,13 +578,13 @@ def multilabel_curves_measures(true_labels: pd.DataFrame, pred_scores: pd.DataFr
     average_precision_macro = average_precision_score(true_labels, pred_scores, average='macro')
     average_precision_micro = average_precision_score(true_labels, pred_scores, average='micro')
     average_precision_weighted = average_precision_score(true_labels, pred_scores, average='weighted')
-    #average_precision_samples = average_precision_score(true_labels, pred_scores, average='samples')    
+    average_precision_samples = average_precision_score(true_labels, pred_scores, average='samples')    
     
     # ROC AUC Scores
     roc_auc_macro = roc_auc_score(true_labels, pred_scores, average='macro')
     roc_auc_micro = roc_auc_score(true_labels, pred_scores, average='micro')
     roc_auc_weighted = roc_auc_score(true_labels, pred_scores, average='weighted')
-    #roc_auc_samples = roc_auc_score(true_labels, pred_scores, average='samples')      
+    roc_auc_samples = roc_auc_score(true_labels, pred_scores, average='samples')      
 
 
     # Store all metrics in a dictionary
@@ -586,11 +592,11 @@ def multilabel_curves_measures(true_labels: pd.DataFrame, pred_scores: pd.DataFr
         'auprc_macro': average_precision_macro,
         'auprc_micro': average_precision_micro,
         'auprc_weighted': average_precision_weighted,
-        # 'auprc_samples': average_precision_samples,
+        'auprc_samples': average_precision_samples,
         'roc_auc_macro': roc_auc_macro,
         'roc_auc_micro': roc_auc_micro,
         'roc_auc_weighted': roc_auc_weighted,
-        # 'roc_auc_samples': roc_auc_samples
+        'roc_auc_samples': roc_auc_samples
     }
 
     # Convert dictionary to DataFrame
@@ -602,283 +608,197 @@ def multilabel_curves_measures(true_labels: pd.DataFrame, pred_scores: pd.DataFr
     return metrics_df
 
 
-def robust_multilabel_metric_original(y_true: np.ndarray, 
-                             y_scores: np.ndarray, 
-                             metric_func, 
-                             average: str) -> float:
+########################################################################
+#                                                                      #
+########################################################################
+def robust_multilabel_metric(y_true, y_scores, metric_func, average='macro', class_names=None, verbose=True):
     """
-    Robust computation of multilabel classification metrics with graceful handling of problematic classes.
+    Compute robust multilabel evaluation metrics, ignoring classes with undefined behavior.
 
-    This function attempts to compute ROC AUC and Average Precision using the specified sklearn metric 
-    function and averaging strategy. If the standard computation fails (commonly due to some classes 
-    containing only one label, making the metric undefined), the function recomputes the metric by:
+    Objectives:
+    -----------
+    - To compute multilabel classification metrics (e.g., ROC AUC, AUPRC) safely.
+    - Automatically detect and skip classes that do not have both positive and negative samples.
+    - Return metric value along with the list of ignored class names.
+    - Provide readable warning messages for skipped classes when verbose=True.
 
-    - For 'macro' averaging: Iterating over each class individually, ignoring classes where the metric is undefined,
-      and returning the mean score over valid classes.
-    - For 'micro' averaging: it attempts standard computation, but no fallback is applied beyond 
-      catching the exception.
+    Parameters:
+    -----------
+    y_true : array-like of shape (n_samples, n_classes)
+        Ground truth binary indicator matrix.
 
-    Parameters
-    ----------
-    y_true : np.ndarray
-        Binary matrix of true labels with shape (n_samples, n_classes).
-
-    y_scores : np.ndarray
-        Matrix of predicted probabilities or scores with shape (n_samples, n_classes).
-
-    metric_func : function
-        The sklearn metric function to be applied, such as `roc_auc_score` or `average_precision_score`.
-
-    average : str
-        The averaging strategy to use. Supported values:
-        - 'macro': Average metric computed per class, treating all classes equally. Robust fallback is applied if needed.
-        - 'micro': Global metric considering all samples and classes. No fallback is applied beyond exception handling.
-
-    Returns
-    -------
-    float or None
-        The computed metric value. For 'macro' averaging, if some classes are ignored, returns the mean over valid classes.
-        Returns None if no valid class is present or the computation is not possible.
-
-    Example
-    -------
-    >>> from sklearn.metrics import roc_auc_score, average_precision_score
-    >>> y_true = np.array([[1, 0, 1], [0, 1, 0], [1, 0, 0]])
-    >>> y_scores = np.array([[0.9, 0.2, 0.8], [0.1, 0.7, 0.3], [0.8, 0.1, 0.4]])
-
-    >>> robust_multilabel_metric(y_true, y_scores, roc_auc_score, average='macro')
-    0.9166...
-
-    >>> robust_multilabel_metric(y_true, y_scores, average_precision_score, average='macro')
-    0.8888...
-    """
-
-    try:
-        return metric_func(y_true, y_scores, average=average)
-    except ValueError as e:
-        print(f"⚠️ Warning: Metric '{metric_func.__name__}' with '{average}' averaging failed: {e}")
-
-        if average != 'macro':
-            print("⚠️ Robust fallback is only implemented for 'macro' averaging.")
-            return None
-
-        n_classes = y_true.shape[1]
-        valid_scores = []
-
-        for i in range(n_classes):
-            true_col = y_true[:, i]
-            pred_col = y_scores[:, i]
-
-            if len(np.unique(true_col)) < 2:
-                print(f"⚠️ Class {i} ignored: only one class present in true labels.")
-                continue
-
-            score = metric_func(true_col, pred_col)
-            valid_scores.append(score)
-
-        if len(valid_scores) == 0:
-            print("⚠️ No valid class for metric computation.")
-            return None
-
-        return np.mean(valid_scores)
-
-
-def robust_multilabel_metric(y_true: np.ndarray, 
-                             y_scores: np.ndarray, 
-                             metric_func, 
-                             average: str):
-    """
-    Computes a robust multilabel metric, skipping labels with undefined behavior
-    (e.g., labels with only one class in y_true), especially useful for 'macro' averaging.
-
-    Parameters
-    ----------
-    y_true : np.ndarray of shape (n_samples, n_labels)
-        Ground truth binary labels for each label.
-
-    y_scores : np.ndarray of shape (n_samples, n_labels)
-        Predicted scores or binary predictions for each label.
+    y_scores : array-like of shape (n_samples, n_classes)
+        Predicted scores or probabilities.
 
     metric_func : callable
-        A scoring function (e.g., f1_score, precision_score, recall_score from sklearn).
-        Must accept `average` as a parameter when used across all labels.
+        Scikit-learn compatible metric function (e.g., `roc_auc_score`, `average_precision_score`).
 
-    average : str
-        Averaging method to apply. Usually 'macro', 'micro', or 'samples'.
-        If 'macro', this function will handle missing classes per-label.
+    average : str, default='macro'
+        Averaging method to compute the metric across labels.
+        Options:
+        - 'macro' : unweighted mean of the per-label scores
+        - 'micro' : global metrics by aggregating TP, FP, FN across all labels
+        - 'weighted' : mean of per-label scores, weighted by support
+        - 'samples' : metrics computed per instance, then averaged
 
-    Returns
-    -------
-    score : float or None
-        The computed metric. Returns None if the metric could not be computed
-        for any label.
+    class_names : list of str, optional
+        List of class names corresponding to columns of y_true. If None, uses "Class 0", "Class 1", etc.
 
-    ignored_classes : list of int
-        Indices of labels that were skipped due to lack of class diversity
-        (i.e., only one class present in `y_true`).
+    verbose : bool, default=True
+        If True, prints warnings for each ignored class or failed metric.
+
+    Returns:
+    --------
+    score : float or np.nan
+        The computed metric score. If no class is valid, returns np.nan.
+
+    ignored_classes : list of str
+        List of class names that were skipped because they lacked positive/negative examples.
+
+    Example:
+    --------
+    >>> from sklearn.metrics import roc_auc_score
+    >>> y_true = np.array([[1, 0, 1], [0, 1, 1], [1, 0, 0]])
+    >>> y_scores = np.array([[0.9, 0.1, 0.8], [0.2, 0.7, 0.6], [0.8, 0.2, 0.3]])
+    >>> class_names = ["LabelA", "LabelB", "LabelC"]
+    >>> score, ignored = robust_multilabel_metric(y_true, y_scores, roc_auc_score, average='macro', class_names=class_names)
+    >>> print(score)
+    0.916...
+    >>> print(ignored)
+    []
 
     Notes
     -----
-    This function is especially useful for multilabel classification with highly
-    imbalanced datasets, where some labels may be all 0s or all 1s, which causes
-    standard sklearn metrics with `average='macro'` to raise ValueError.
-
-    Example
-    -------
-    >>> from sklearn.metrics import f1_score
-    >>> score, ignored = robust_multilabel_metric(y_true, y_pred, f1_score, average='macro')
-    >>> print(f"F1 macro score: {score}, Ignored classes: {ignored}")
+    Author: Mauri Ferrandin and Elaine Cecília Gatto
     """
     ignored_classes = []
+    valid_scores = []
 
-    try:
-        score = metric_func(y_true, y_scores, average=average)
-        return score, ignored_classes
+    n_classes = y_true.shape[1]
 
-    except ValueError:
-        if average != 'macro':
-            return None, ignored_classes
+    for i in range(n_classes):
+        true_col = y_true[:, i]
+        pred_col = y_scores[:, i]
 
-        n_classes = y_true.shape[1]
-        valid_scores = []
+        if len(np.unique(true_col)) < 2:
+            class_label = class_names[i] if class_names else f"Class {i}"
+            ignored_classes.append(class_label)
+            if verbose:
+                print(f"⚠️ Class '{class_label}' ignored: only one class present in true labels.")
+            continue
 
-        for i in range(n_classes):
-            true_col = y_true[:, i]
-            pred_col = y_scores[:, i]
-
-            if len(np.unique(true_col)) < 2:
-                ignored_classes.append(i)
-                continue
-
-            try:
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", category=UserWarning)
+                warnings.simplefilter("ignore", category=UndefinedMetricWarning)
                 score_i = metric_func(true_col, pred_col)
-                valid_scores.append(score_i)
-            except ValueError:
-                ignored_classes.append(i)
+            valid_scores.append(score_i)
+        except ValueError:
+            class_label = class_names[i] if class_names else f"Class {i}"
+            ignored_classes.append(class_label)
+            if verbose:
+                print(f"⚠️ Class '{class_label}' ignored due to error when computing the metric.")
 
-        if len(valid_scores) == 0:
-            return None, ignored_classes
+    if not valid_scores:
+        if verbose:
+            print(f"⚠️ Metric '{metric_func.__name__}' with '{average}' averaging failed: no valid classes.")
+        return np.nan, ignored_classes
 
+    if average == 'macro':
         return np.mean(valid_scores), ignored_classes
+    elif average == 'weighted':
+        supports = [np.sum(y_true[:, i]) for i in range(n_classes) if len(np.unique(y_true[:, i])) > 1]
+        total_support = np.sum(supports)
+        weights = [s / total_support for s in supports]
+        return np.average(valid_scores, weights=weights), ignored_classes
+    elif average == 'samples':
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", category=UserWarning)
+                return metric_func(y_true, y_scores, average='samples'), ignored_classes
+        except ValueError:
+            return np.nan, ignored_classes
+    elif average == 'micro':
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", category=UserWarning)
+                return metric_func(y_true, y_scores, average='micro'), ignored_classes
+        except ValueError:
+            return np.nan, ignored_classes
     
     
 
-def multilabel_curve_metrics_original(true_labels: pd.DataFrame, predicted_scores: pd.DataFrame) -> pd.DataFrame:
-    """
-    Computes curve-based evaluation metrics for multi-label classification, including 
-    AUPRC (Average Precision) and ROC AUC, using both macro and micro averaging.
-    Robust to labels with only one class using `robust_multilabel_metric`.
-
-    Parameters
-    ----------
-    true_labels : pd.DataFrame
-        A binary DataFrame (shape: n_samples x n_labels) containing the ground truth labels
-        for each label. Each column corresponds to a label.
-
-    predicted_scores : pd.DataFrame
-        A DataFrame (shape: n_samples x n_labels) containing the predicted scores or
-        probabilities for each label. Columns must align with `true_labels`.
-
-    Returns
-    -------
-    pd.DataFrame
-        A DataFrame with two columns:
-        - 'Measure': Name of the metric (e.g., 'auprc_macro', 'roc_auc_micro').
-        - 'Value': The corresponding metric value or a tuple of (value, ignored_labels).
-
-    Notes
-    -----
-    This function wraps standard curve-based metrics (AUPRC, ROC AUC) with a robust layer
-    to skip labels that cause undefined behavior (e.g., when a label has no positive samples).
-    Uses macro and micro averaging schemes.
-
-    Example
-    -------
-    >>> metrics_df = multilabel_curve_metrics_original(y_true_df, y_scores_df)
-    >>> print(metrics_df)
-           Measure               Value
-    0   auprc_macro  (0.4567, [3, 12])
-    1   auprc_micro  (0.4821, [])
-    2  roc_auc_macro (0.6912, [7])
-    3  roc_auc_micro (0.7389, [])
-    """
-
-    # AUPRC
-    ap_macro = robust_multilabel_metric(true_labels.values, predicted_scores.values, average_precision_score, average='macro')
-    ap_micro = robust_multilabel_metric(true_labels.values, predicted_scores.values, average_precision_score, average='micro')
-
-    # ROC AUC
-    roc_auc_macro = robust_multilabel_metric(true_labels.values, predicted_scores.values, roc_auc_score, average='macro')
-    roc_auc_micro = robust_multilabel_metric(true_labels.values, predicted_scores.values, roc_auc_score, average='micro')
-
-    metrics_dict = {
-        'auprc_macro': ap_macro,
-        'auprc_micro': ap_micro,
-        'roc_auc_macro': roc_auc_macro,
-        'roc_auc_micro': roc_auc_micro
-    }
-
-    return pd.DataFrame(list(metrics_dict.items()), columns=['Measure', 'Value'])
-
-
+########################################################################
+#                                                                      #
+########################################################################
 def multilabel_curve_metrics(true_labels: pd.DataFrame, predicted_scores: pd.DataFrame):
     """
-    Computes multilabel curve-based evaluation metrics (AUPRC and ROC AUC)
-    using both macro and micro averaging. Also returns the list of ignored
-    classes for each metric due to insufficient label variability.
+    Compute multilabel curve-based evaluation metrics (AUPRC and ROC AUC) with support 
+    for multiple averaging strategies and robust handling of undefined metric cases.
+
+    Objectives
+    ----------
+    - Compute AUPRC and ROC AUC using ['macro', 'micro', 'weighted', 'samples'] averaging.
+    - Gracefully skip labels that lack positive or negative samples, avoiding metric errors.
+    - Return the list of ignored class names per metric and print informative warnings.
 
     Parameters
     ----------
     true_labels : pd.DataFrame
-        A binary matrix (shape: n_samples x n_labels) representing the ground truth labels.
-        Each column corresponds to a label.
+        Binary matrix (shape: n_samples x n_classes) of ground truth labels.
+        Column names are treated as class names.
 
     predicted_scores : pd.DataFrame
-        A matrix of predicted probabilities or scores (shape: n_samples x n_labels).
-        Columns must align with those in `true_labels`.
+        Matrix of predicted scores or probabilities (same shape and column order as true_labels).
 
     Returns
     -------
     metrics_df : pd.DataFrame
-        A DataFrame with the following columns:
-        - 'Measure': The name of the metric (e.g., 'auprc_macro').
-        - 'Value'  : The computed metric value (float or None).
+        DataFrame containing:
+        - 'Measure': Metric name (e.g., 'auprc_macro')
+        - 'Value'  : Metric value (float or np.nan if undefined)
 
     ignored_df : pd.DataFrame
-        A DataFrame with:
-        - 'Measure': The name of the metric.
-        - 'Ignored_Classes': List of label indices that were skipped during computation,
-          usually due to the presence of only one class (e.g., all 0s).
-
-    Notes
-    -----
-    This function uses `robust_multilabel_metric` to handle edge cases where some labels
-    have only one class. In such cases, those labels are excluded from the macro average.
+        DataFrame containing:
+        - 'Measure'         : Name of the metric (same as in metrics_df)
+        - 'Ignored_Classes' : List of class names skipped due to insufficient variability
 
     Example
     -------
-    >>> metrics_df, ignored_df = multilabel_curve_metrics(y_true_df, y_scores_df)
+    >>> metrics_df, ignored_df = multilabel_curve_metrics(y_test, y_proba)
     >>> print(metrics_df)
-           Measure     Value
-    0   auprc_macro    0.421
-    1   auprc_micro    0.457
-    2  roc_auc_macro   0.678
-    3  roc_auc_micro   0.703
-
+            Measure     Value
+        0  auprc_macro    0.88
+        1  auprc_micro    0.91
+        ...
     >>> print(ignored_df)
-           Measure Ignored_Classes
-    0   auprc_macro      [2, 5]
-    1   auprc_micro         []
-    2  roc_auc_macro     [1, 4, 9]
-    3  roc_auc_micro        []
+            Measure       Ignored_Classes
+        0  roc_auc_macro   ['Label1']
+        1  roc_auc_weighted ['Label1']
+
+    Notes
+    -----
+    Author: Mauri Ferrandin and Elaine Cecília Gatto
     """
     metrics_data = []
     ignored_data = []
 
-    for metric_func, metric_name in [(average_precision_score, 'auprc'), (roc_auc_score, 'roc_auc')]:
-        for avg in ['macro', 'micro']:
-            score, ignored = robust_multilabel_metric(true_labels.values, predicted_scores.values, metric_func, average=avg)
-            
+    class_names = true_labels.columns.tolist()
+
+    for metric_func, metric_name in [
+        (average_precision_score, 'auprc'),
+        (roc_auc_score, 'roc_auc')
+    ]:
+        for avg in ['macro', 'micro', 'weighted', 'samples']:
+            score, ignored = robust_multilabel_metric(
+                y_true=true_labels.values,
+                y_scores=predicted_scores.values,
+                metric_func=metric_func,
+                average=avg,
+                class_names=class_names,
+                verbose=True
+            )
+
             metrics_data.append({
                 'Measure': f'{metric_name}_{avg}',
                 'Value': score
@@ -896,58 +816,65 @@ def multilabel_curve_metrics(true_labels: pd.DataFrame, predicted_scores: pd.Dat
 
 
 
-def safe_predict_proba(chain, X):
+
+########################################################################
+#                                                                      #
+########################################################################
+def safe_predict_proba_ecc(model, X_test, Y_train):
     """
-    Safely computes predicted probabilities for a multi-label classification chain,
-    handling cases where some labels may have only one class during training.
+    Safely computes class probabilities for ECC (Ensemble of Classifier Chains),
+    handling cases where some classifiers were trained on a single class only.
+
+    This avoids IndexError from ClassifierChain.predict_proba() when only one class was seen
+    during training, by assuming a constant probability of 0 or 1 based on the single class.
 
     Parameters
     ----------
-    chain : sklearn.multioutput.ClassifierChain
-        A fitted ClassifierChain instance with binary classifiers.
-
-    X : array-like of shape (n_samples, n_features)
-        The input feature matrix for which to predict probabilities.
+    model : ECC
+        A fitted ECC model containing multiple sklearn.multioutput.ClassifierChain chains.
+    
+    X_test : pandas.DataFrame or np.ndarray
+        Feature matrix for prediction.
+    
+    Y_train : pandas.DataFrame
+        Training label matrix used to determine the number and names of the labels.
 
     Returns
     -------
-    Y_prob_chain : ndarray of shape (n_samples, n_labels)
-        The predicted probability for each label (column) being class 1.
-
-    Notes
-    -----
-    This function handles edge cases where some classifiers in the chain
-    were trained on only one class (either all 0s or all 1s). In such cases,
-    sklearn's predict_proba returns a single-column output, which this function
-    interprets correctly as either 0.0 or 1.0 probability for class 1.
+    prob_df : pandas.DataFrame
+        Averaged predicted probabilities over all chains, shape (n_samples, n_labels).
 
     Example
     -------
-    >>> from sklearn.multioutput import ClassifierChain
-    >>> from sklearn.ensemble import RandomForestClassifier
-    >>> chain = ClassifierChain(RandomForestClassifier())
-    >>> chain.fit(X_train, Y_train)
-    >>> Y_proba = safe_predict_proba(chain, X_test)
+    >>> proba = safe_predict_proba_ecc(model, X_test, Y_train)
+    >>> proba.to_csv("y_pred_proba.csv", index=False)
+
+    Author: [Seu Nome]
     """
+    import numpy as np
+    import pandas as pd
 
-    n_labels = len(chain.estimators_)
-    Y_prob_chain = np.zeros((X.shape[0], n_labels))
+    all_chain_probas = []
 
-    for chain_idx, estimator in enumerate(chain.estimators_):
-        if chain_idx == 0:
-            X_aug = X
-        else:
-            X_aug = np.hstack((X, Y_prob_chain[:, :chain_idx]))
+    for chain_idx, chain in enumerate(model.chains):
+        n_samples = X_test.shape[0]
+        n_labels = Y_train.shape[1]
+        probas = np.zeros((n_samples, n_labels))
+        X_aug = X_test.values
 
-        probas = estimator.predict_proba(X_aug)
+        for idx, estimator in enumerate(chain.estimators_):
+            if idx > 0:
+                X_aug = np.hstack((X_test.values, probas[:, :idx]))
 
-        if probas.shape[1] == 2:
-            Y_prob_chain[:, chain_idx] = probas[:, 1]
-        elif probas.shape[1] == 1:
-            # Apenas uma classe (ex: tudo 0 ou tudo 1)
-            class_val = estimator.classes_[0]
-            Y_prob_chain[:, chain_idx] = 1.0 if class_val == 1 else 0.0
-        else:
-            raise ValueError(f"Classe inesperada em label {chain_idx}: {probas.shape}")
+            proba = estimator.predict_proba(X_aug)
 
-    return Y_prob_chain
+            if proba.shape[1] == 2:
+                probas[:, idx] = proba[:, 1]
+            else:
+                label_class = estimator.classes_[0]
+                probas[:, idx] = 1.0 if label_class == 1 else 0.0
+
+        all_chain_probas.append(probas)
+
+    mean_proba = np.mean(all_chain_probas, axis=0)
+    return pd.DataFrame(mean_proba, columns=Y_train.columns)
