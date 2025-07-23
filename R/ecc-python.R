@@ -247,18 +247,6 @@ gather.eval.python.silho <- function(parameters){
                         "/Split-", f, sep="")
     
     #########################################################################
-    res.python = data.frame(read.csv(paste(folderSplit, 
-                                           "/results-python.csv", sep="")))
-    names(res.python) = c("Measures", paste0("Fold-",f))
-    
-    res.utiml = data.frame(read.csv(paste(folderSplit, 
-                                          "/results-utiml.csv", sep="")))
-    names(res.utiml) = c("Measures", paste0("Fold-",f))
-    
-    resultados = rbind(res.python, res.utiml)
-    final.results = cbind(final.results, resultados)
-    
-    #########################################################################
     res.model.size.chains = data.frame(read.csv(paste(folderSplit, 
                                                       "/model_sizes_chains.csv", 
                                                       sep="")))
@@ -274,6 +262,18 @@ gather.eval.python.silho <- function(parameters){
     all.model.size = rbind(all.model.size, res.mode.size)
     
     #########################################################################
+    res.python = data.frame(read.csv(paste(folderSplit, 
+                                           "/results-python.csv", sep="")))
+    names(res.python) = c("Measures", paste0("Fold-",f))
+    
+    res.utiml = data.frame(read.csv(paste(folderSplit, 
+                                          "/results-utiml.csv", sep="")))
+    names(res.utiml) = c("Measures", paste0("Fold-",f))
+    
+    resultados = rbind(res.python, res.utiml)
+    final.results = cbind(final.results, resultados)
+    
+    #########################################################################
     res.runtime.fold = data.frame(read.csv(paste(folderSplit, 
                                                  "/runtime-fold.csv", sep="")))
     res.runtime.fold = res.runtime.fold[,-1]
@@ -281,16 +281,10 @@ gather.eval.python.silho <- function(parameters){
     final.runtime.r = rbind(final.runtime.r, res.runtime.fold)
     
     #########################################################################
-    res.time.test = data.frame(read.csv(paste(folderSplit, 
-                                              "/time_test.csv", 
-                                              sep="")))
-    res.time.test = data.frame(t(res.time.test))
-    nomes.colunas = res.time.test[1,]
-    names(res.time.test) = nomes.colunas
-    res.time.test = res.time.test[-1,]
-    rownames(res.time.test) <- NULL
-    res.time.test = data.frame(fold = f, res.time.test)
-    all.time.test = rbind(all.time.test, res.time.test)
+    res.runtime.python = data.frame(read.csv(paste(folderSplit, 
+                                                 "/runtime-python.csv", sep="")))
+    res.runtime.python = data.frame(fold=f, res.runtime.python)
+    final.runtime.p = rbind(final.runtime.p, res.runtime.python)
     
     #########################################################################
     res.time.train.chains = data.frame(read.csv(paste(folderSplit, 
@@ -311,10 +305,10 @@ gather.eval.python.silho <- function(parameters){
     system(paste("rm -r ", folderSplit, "/results-utiml.csv", sep=""))
     system(paste("rm -r ", folderSplit, "/model_sizes_chains.csv", sep=""))
     system(paste("rm -r ", folderSplit, "/model_sizes_total.csv", sep=""))
-    system(paste("rm -r ", folderSplit, "/time_test.csv", sep=""))
     system(paste("rm -r ", folderSplit, "/time_train_chains.csv", sep=""))
     system(paste("rm -r ", folderSplit, "/time_train_total.csv", sep=""))
     system(paste("rm -r ", folderSplit, "/runtime-fold.csv", sep=""))
+    system(paste("rm -r ", folderSplit, "/runtime-python.csv", sep=""))
     
     f = f + 1
     gc()
