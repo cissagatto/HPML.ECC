@@ -260,69 +260,54 @@ class ECC:
         self.chain_model_sizes = sizes           # Atualiza aqui!
         self.total_model_size = sum(sizes)
         return self.chain_model_sizes, self.total_model_size  
+
+
+
+    def safe_predict_proba(self, X_test, Y_train):
+        """
+        Safely computes class probabilities for ECC, handling classifiers trained on a single class.
+
+        Parameters
+        ----------
+        X_test : pandas.DataFrame or np.ndarray
+            Feature matrix for prediction.
         
+        Y_train : pandas.DataFrame
+            Training label matrix used to determine output structure.
 
+        Returns
+        -------
+        pandas.DataFrame
+            Averaged predicted probabilities over all chains, shape (n_samples, n_labels).
+        """
+        import numpy as np
+        import pandas as pd
 
+        all_chain_probas = []
 
+        for chain_idx, chain in enumerate(self.chains):
+            n_samples = X_test.shape[0]
+            n_labels = Y_train.shape[1]
+            probas = np.zeros((n_samples, n_labels))
+            X_aug = X_test.values
 
-########################################################################
-#                                                                      #
-########################################################################
-def safe_predict_proba_ecc(model, X_test, Y_train):
-    """
-    Safely computes class probabilities for ECC (Ensemble of Classifier Chains),
-    handling cases where some classifiers were trained on a single class only.
+            for idx, estimator in enumerate(chain.estimators_):
+                if idx > 0:
+                    X_aug = np.hstack((X_test.values, probas[:, :idx]))
 
-    This avoids IndexError from ClassifierChain.predict_proba() when only one class was seen
-    during training, by assuming a constant probability of 0 or 1 based on the single class.
+                try:
+                    proba = estimator.predict_proba(X_aug)
+                    if proba.shape[1] == 2:
+                        probas[:, idx] = proba[:, 1]
+                    else:
+                        label_class = estimator.classes_[0]
+                        probas[:, idx] = 1.0 if label_class == 1 else 0.0
+                except Exception:
+                    # Fallback if predict_proba fails for any reason
+                    label_class = estimator.classes_[0]
+                    probas[:, idx] = 1.0 if label_class == 1 else 0.0
 
-    Parameters
-    ----------
-    model : ECC
-        A fitted ECC model containing multiple sklearn.multioutput.ClassifierChain chains.
-    
-    X_test : pandas.DataFrame or np.ndarray
-        Feature matrix for prediction.
-    
-    Y_train : pandas.DataFrame
-        Training label matrix used to determine the number and names of the labels.
+            all_chain_probas.append(probas)
 
-    Returns
-    -------
-    prob_df : pandas.DataFrame
-        Averaged predicted probabilities over all chains, shape (n_samples, n_labels).
-
-    Example
-    -------
-    >>> proba = safe_predict_proba_ecc(model, X_test, Y_train)
-    >>> proba.to_csv("y_pred_proba.csv", index=False)
-
-    Author: [Seu Nome]
-    """
-    import numpy as np
-    import pandas as pd
-
-    all_chain_probas = []
-
-    for chain_idx, chain in enumerate(model.chains):
-        n_samples = X_test.shape[0]
-        n_labels = Y_train.shape[1]
-        probas = np.zeros((n_samples, n_labels))
-        X_aug = X_test.values
-
-        for idx, estimator in enumerate(chain.estimators_):
-            if idx > 0:
-                X_aug = np.hstack((X_test.values, probas[:, :idx]))
-
-            proba = estimator.predict_proba(X_aug)
-
-            if proba.shape[1] == 2:
-                probas[:, idx] = proba[:, 1]
-            else:
-                label_class = estimator.classes_[0]
-                probas[:, idx] = 1.0 if label_class == 1 else 0.0
-
-        all_chain_probas.append(probas)
-
-    mean_proba = np.mean(all_chain_probas, axis=0)
-    return pd.DataFrame(mean_proba, columns=Y_train.columns)
+        mean_proba = np.mean(all_chain_probas, axis=0)
+        return pd.DataFrame(mean_proba, columns=Y_train.columns)

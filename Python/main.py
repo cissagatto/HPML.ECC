@@ -114,7 +114,7 @@ if __name__ == '__main__':
     # =========== PREDICT PROBA ===========        
     start_time_proba = time.time()     
     # proba = model.predict_proba(X_test)    
-    proba = ECC.safe_predict_proba_ecc(model, X_test, Y_train)
+    proba = model.safe_predict_proba(X_test, Y_train)
     end_time_proba = time.time()
     test_duration_proba = end_time_proba - start_time_proba  
 
@@ -143,9 +143,9 @@ if __name__ == '__main__':
     probas_path = os.path.join(output_dir, "y_pred_proba.csv")
     proba.to_csv(probas_path, index=False)   
 
-    bin_df = pd.DataFrame(bin, columns=labels_y_test)
-    bin_path = os.path.join(output_dir, "bin_python.csv")
-    bin_df.to_csv(bin_path, index=False)   
+    #bin_df = pd.DataFrame(bin, columns=labels_y_test)
+    #bin_path = os.path.join(output_dir, "bin_python.csv")
+    #bin_df.to_csv(bin_path, index=False)   
 
     Y_test.to_csv(os.path.join(output_dir, 'y_true.csv'), index=False)
     
