@@ -58,22 +58,22 @@ if __name__ == '__main__':
     test_path = sys.argv[3]    # test CSV path
     start_label = int(sys.argv[4])  # starting index for labels
     output_dir = sys.argv[5]   # output directory
-    # fold = sys.argv[6]         # fold name or identifier (se precisar)
+    fold = sys.argv[6]         # fold name or identifier (se precisar)
 
-    train_path = "/tmp/ecc-GnegativeGO/Dataset/GnegativeGO/CrossValidation/Tr/GnegativeGO-Split-Tr-1.csv"
-    valid_path = "/tmp/ecc-GnegativeGO/Dataset/GnegativeGO/CrossValidation/Vl/GnegativeGO-Split-Vl-1.csv"
-    test_path = "/tmp/ecc-GnegativeGO/Dataset/GnegativeGO/CrossValidation/Ts/GnegativeGO-Split-Ts-1.csv"
-    start_label = 1717
-    output_dir = "/tmp/ecc-GnegativeGO/ECC/Split-1"
-    fold  = 1 
+    #train_path = "/tmp/ecc-GnegativeGO/Dataset/GnegativeGO/CrossValidation/Tr/GnegativeGO-Split-Tr-1.csv"
+    #valid_path = "/tmp/ecc-GnegativeGO/Dataset/GnegativeGO/CrossValidation/Vl/GnegativeGO-Split-Vl-1.csv"
+    #test_path = "/tmp/ecc-GnegativeGO/Dataset/GnegativeGO/CrossValidation/Ts/GnegativeGO-Split-Ts-1.csv"
+    #start_label = 1717
+    #output_dir = "/tmp/ecc-GnegativeGO/ECC/Split-1"
+    #fold  = 1 
 
-    # print("\n\n%==============================================%")
+    print("\n\n%==============================================%")
     #print("train: ", sys.argv[1])
     #print("valid: ", sys.argv[2])
     #print("test: ", sys.argv[3])
     #print("label start: ", sys.argv[4])
     #print("output_dir: ", sys.argv[5])
-    # print("Fold: ", sys.argv[6])
+    print("Fold: ", sys.argv[6])
     #print("%==============================================%\n\n")
 
     # =========== LEITURA DOS DADOS ===========
