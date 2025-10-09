@@ -67,13 +67,13 @@ if __name__ == '__main__':
     #output_dir = "/tmp/ecc-GnegativeGO/ECC/Split-1"
     #fold  = 1 
 
-    print("\n\n%==============================================%")
+    #print("\n\n%==============================================%")
     #print("train: ", sys.argv[1])
     #print("valid: ", sys.argv[2])
     #print("test: ", sys.argv[3])
     #print("label start: ", sys.argv[4])
     #print("output_dir: ", sys.argv[5])
-    print("Fold: ", sys.argv[6])
+    #print("Fold: ", sys.argv[6])
     #print("%==============================================%\n\n")
 
     # =========== LEITURA DOS DADOS ===========
@@ -104,19 +104,25 @@ if __name__ == '__main__':
     n_chains = 10
     rf_base = RandomForestClassifier(n_estimators=n_estimators, random_state=random_state)
     model = ECC(rf_base, n_chains=n_chains)
+    
+    
 
     # =========== TRAIN ===========    
     start_time_train = time.time()     
     model.fit(X_train, Y_train)
     end_time_train = time.time()
     train_duration = end_time_train - start_time_train
+    
+    
         
     # =========== PREDICT PROBA ===========        
     start_time_proba = time.time()     
     # proba = model.predict_proba(X_test)    
     proba = model.safe_predict_proba(X_test, Y_train)
     end_time_proba = time.time()
-    test_duration_proba = end_time_proba - start_time_proba  
+    test_duration_proba = end_time_proba - start_time_proba 
+    
+    
 
     # =========== PREDICT BIN===========
     #start_time_test_bin = time.time()
@@ -128,6 +134,20 @@ if __name__ == '__main__':
     #card = model.predict_cardinality(X_test, Y_train)
     #end_time_card = time.time()
     #test_duration_card = end_time_card - start_time_card
+    
+    
+    
+    # =========== SAVE MODEL SIZE EM BYTES ===========
+    model_buffer = io.BytesIO()
+    pickle.dump(model, model_buffer)
+    model_size_bytes = model_buffer.tell()
+    model_size_df = pd.DataFrame({
+        'model_size_bytes': [model_size_bytes]
+    })
+    model_size_df.to_csv(os.path.join(output_dir, "model_size.csv"), index=False)   
+
+
+
 
     # =========== SAVE TIME PREDICT ===========
     times_df = pd.DataFrame({        
@@ -137,6 +157,8 @@ if __name__ == '__main__':
     })
     times_path = os.path.join(output_dir, "runtime-python.csv")
     times_df.to_csv(times_path, index=False)
+    
+    
 
     # =========== SAVE PREDICTIONS ===========   
     # probas_df = pd.DataFrame(proba, columns=labels_y_test)
@@ -149,36 +171,41 @@ if __name__ == '__main__':
 
     Y_test.to_csv(os.path.join(output_dir, 'y_true.csv'), index=False)
     
+    
 
     # =========== SAVE MODEL SIZE ===========      
     if not model.chain_model_sizes or model.total_model_size == 0:
-        model.get_model_sizes()                
+        model.get_model_sizes()
     df_chains = pd.DataFrame({
         'Chain_Index': range(1, len(model.chain_model_sizes) + 1),
         'Model_Size_Bytes': model.chain_model_sizes
     })
     df_chains.to_csv(os.path.join(output_dir, 'model_sizes_chains.csv'), index=False)
     df_total = pd.DataFrame({'Total_Model_Size_Bytes': [model.total_model_size]})
-    df_total.to_csv(os.path.join(output_dir, 'model_sizes_total.csv'), index=False)
+    df_total.to_csv(os.path.join(output_dir, 'model_size_total.csv'), index=False)
 
     #print("Saving to:", os.path.join(output_dir, 'model_sizes_chains.csv'))
     #print("Chain sizes:", model.chain_model_sizes)
     #print("Total size:", model.total_model_size)
+    
+    
 
     # =========== SAVE TRAINING TIME SIZE ===========              
     if not model.chain_train_times or model.train_time_total == 0:
-        raise RuntimeError("Model has not been trained. Run model.fit() before saving training times.")    
+        raise RuntimeError("Model has not been trained. Run model.fit() before saving training times.")
     df_time = pd.DataFrame({
         'Chain_Index': range(1, len(model.chain_train_times) + 1),
         'Time_Seconds': model.chain_train_times
     })
-    df_time.to_csv(os.path.join(output_dir, 'time_train_chains.csv'), index=False)    
+    df_time.to_csv(os.path.join(output_dir, 'time_train_chains.csv'), index=False)
     df_total_time = pd.DataFrame({'Time_Train_Total': [model.train_time_total]})
-    df_total_time.to_csv(os.path.join(output_dir, 'time_train_total.csv'), index=False)
+    df_total_time.to_csv(os.path.join(output_dir, 'runtime_chains.csv'), index=False)
 
     #print("Training times saved to:", os.path.join(output_dir, 'time_train_chains.csv'))
     #print("Train chain times:", model.chain_train_times)
     #print("Total train time:", model.train_time_total)
+    
+    
 
     # =========== SAVE MEASURES ===========   
     metrics_df, ignored_df = eval.multilabel_curve_metrics(Y_test, proba)    
@@ -186,3 +213,6 @@ if __name__ == '__main__':
     metrics_df.to_csv(name, index=False)  
     name = (output_dir + "/ignored-classes.csv") 
     ignored_df.to_csv(name, index=False)  
+    
+    
+    

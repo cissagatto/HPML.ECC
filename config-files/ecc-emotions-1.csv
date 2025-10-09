@@ -1,6 +1,6 @@
 Config, Value
 FolderScripts, ~/HPML.ECC/R
-Dataset_Path,  ~/HPML.ECC/Datasets
+Dataset_Path, ~/HPML.ECC/Datasets
 Temporary_Path, /tmp/ecc-emotions
 Implementation, rf
 Dataset_Name, emotions

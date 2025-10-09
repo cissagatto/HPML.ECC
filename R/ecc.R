@@ -67,7 +67,7 @@ cat("\n#################################################\n\n")
 args <- commandArgs(TRUE)
 
 
-# config_file = "~/HPML.ECC/config-files/ecc-yeast-1.csv"
+# config_file = "~/HPML.ECC/config-files/ecc-emotions-1.csv"
 
 
 config_file <- args[1]
@@ -286,20 +286,46 @@ if(implementation=="utiml"){
   print(system(str5))
   
   
+  
   cat("\n##############################################################")
   cat("\n# HPML.ECC: COMPRESS RESULTS                                 #")
   cat("\n##############################################################\n\n")
-  str3 <- paste0(    
-    "tar -zcvf ", parameters$Directories$folderResults, "/",
-    parameters$Dataset.Info$Name, "-results-ecc.tar.gz ",
-    parameters$Directories$folderECC
+  
+  folder_results <- parameters$Directories$folderResults
+  folder_ecc <- parameters$Directories$folderECC
+  dataset_name <- parameters$Dataset.Info$Name
+  
+  # Compacta o conteúdo DENTRO da pasta ECC (sem incluir a própria pasta)
+  str3 <- paste0(
+    "tar -zcvf ", folder_results, "/", dataset_name, "-results-ecc.tar.gz ",
+    "-C ", folder_ecc, " ."
   )
+  
   print(str3)
-  res = system(str3)
+  res <- system(str3)
+  
   if (res != 0) {
-    cat("\nError: ", str03)
+    cat("\nError: ", str3)
     break
   }
+  
+  
+  # 
+  # 
+  # cat("\n##############################################################")
+  # cat("\n# HPML.ECC: COMPRESS RESULTS                                 #")
+  # cat("\n##############################################################\n\n")
+  # str3 <- paste0(    
+  #   "tar -zcvf ", parameters$Directories$folderResults, "/",
+  #   parameters$Dataset.Info$Name, "-results-ecc.tar.gz ",
+  #   parameters$Directories$folderECC
+  # )
+  # print(str3)
+  # res = system(str3)
+  # if (res != 0) {
+  #   cat("\nError: ", str03)
+  #   break
+  # }
   
   cat("\n##########################################################")
   cat("\n# ECC: COPY TO HOME                                      #")
