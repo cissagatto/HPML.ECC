@@ -97,7 +97,6 @@ if __name__ == '__main__':
     print("test: ", sys.argv[3])
     print("label start: ", sys.argv[4])
     print("output_dir: ", sys.argv[5])
-    print("FOLD: ", sys.argv[6])
     print("%==============================================%\n\n")
 
     # Concatenate train + valid
@@ -147,7 +146,7 @@ if __name__ == '__main__':
     bin_df = pd.DataFrame(bin, columns=Y_test.columns)     
 
 
-      # ======= SALVANDO OS CSVS =======        
+    # ======= SALVANDO OS CSVS =======        
     true_name = os.path.join(directory, "y_true.csv")
     binary_name = os.path.join(directory, "y_pred_bin.csv")
     proba_name = os.path.join(directory, "y_pred_proba.csv")   
