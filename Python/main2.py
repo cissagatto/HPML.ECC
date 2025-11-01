@@ -100,8 +100,6 @@ if __name__ == '__main__':
     # print("FOLD: ", sys.argv[6])
     # print("%==============================================%\n\n")
 
-    # Concatenate train + valid
-    train = pd.concat([train, valid], axis=0).reset_index(drop=True)
 
     # Features and labels separation
     X_train = train.iloc[:, :start]
