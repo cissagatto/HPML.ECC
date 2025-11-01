@@ -1,7 +1,6 @@
-cat("\n###########################################################")
-cat("\n# HPML.ECC: START                                         #")
-cat("\n###########################################################\n\n")
-
+cat("\n#########################################################")
+cat("\n# HPML.ECC: START                                       #")
+cat("\n#########################################################\n\n")
 
 # clean
 rm(list=ls())
@@ -19,84 +18,109 @@ rm(list=ls())
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General   #
 # Public License for more details.                                           #
 #                                                                            #
-# Prof. Elaine Cecilia Gatto - UFLA - Lavras, Minas Gerais, Brazil           #
-# Prof. Ricardo Cerri - USP - São Carlos, São Paulo, Brazil                  #
-# Prof. Mauri Ferrandin - UFSC - Blumenau, Santa Catarina, Brazil            #
-# Prof. Celine Vens - Ku Leuven - Kortrijik, West Flanders, Belgium          #
-# PhD Felipe Nakano Kenji - Ku Leuven - Kortrijik, West Flanders, Belgium    #
+# 1 - Prof PhD Elaine Cecilia Gatto                                          #
+# 2 - Prof PhD Ricardo Cerri                                                 #
+# 3 - Prof PhD Mauri Ferrandin                                               #
+# 4 - Prof PhD Celine Vens                                                   #
+# 5 - PhD Felipe Nakano Kenji                                                #
+# 6 - Prof PhD Jesse Read                                                    #
 #                                                                            #
-# BIOMAL - http://www.biomal.ufscar.br                                       #
+# 1 = Federal University of São Carlos - UFSCar - https://www2.ufscar.br     #
+# Campus São Carlos | Computer Department - DC - https://site.dc.ufscar.br | #
+# Post Graduate Program in Computer Science - PPGCC                          # 
+# http://ppgcc.dc.ufscar.br | Bioinformatics and Machine Learning Group      #
+# BIOMAL - http://www.biomal.ufscar.br                                       # 
+#                                                                            # 
+# 1 = Federal University of Lavras - UFLA                                    #
+#                                                                            # 
+# 2 = State University of São Paulo - USP                                    #
+#                                                                            # 
+# 3 - Federal University of Santa Catarina Campus Blumenau - UFSC            #
+# https://ufsc.br/                                                           #
+#                                                                            #
+# 4 and 5 - Katholieke Universiteit Leuven Campus Kulak Kortrijk Belgium     #
+# Medicine Department - https://kulak.kuleuven.be/                           #
+# https://kulak.kuleuven.be/nl/over_kulak/faculteiten/geneeskunde            #
+#                                                                            #
+# 6 - Ecole Polytechnique | Institut Polytechnique de Paris | 1 rue Honoré   #
+# d’Estienne d’Orves - 91120 - Palaiseau - FRANCE                            #
 #                                                                            #
 ##############################################################################
 
+#getwd()
 
 
-###############################################################################
-# SET WORKSAPCE                                                               #
-###############################################################################
+
+cat("\n##############################")
+cat("\n# Set Work Space             #")
+cat("\n##############################\n\n")
 library(here)
 library(stringr)
 FolderRoot <- here::here()
-FolderScripts <- here::here("R")
 
 
-cat("\n############################################")
-cat("\n# HPML.ECC: R Options Configuration        #")
-cat("\n############################################\n\n")
+
+cat("\n########################################")
+cat("\n# R Options Configuration              #")
+cat("\n########################################\n\n")
 options(java.parameters = "-Xmx64g")  # JAVA
 options(show.error.messages = TRUE)   # ERROR MESSAGES
 options(scipen=20)                    # number of places after the comma
+options(repos = c(CRAN = "https://cloud.r-project.org"))
 
 
-########################################
+
+cat("\n########################################")
+cat("\n# Creating parameters list             #")
+cat("\n########################################\n\n")
 parameters = list()
-########################################
 
 
-cat("\n##################################################")
-cat("\n# HPML.ECC: Reading Datasets-Original.csv        #")
-cat("\n##################################################\n\n")
+cat("\n########################################")
+cat("\n# Reading Datasets-Original.csv        #")
+cat("\n########################################\n\n")
 setwd(FolderRoot)
 datasets <- data.frame(read.csv("datasets-original.csv"))
 parameters$Datasets.List = datasets
 
 
-cat("\n#################################################")
-cat("\n# HPML.ECC: GET ARGUMENTS FROM COMMAND LINE     #")
-cat("\n#################################################\n\n")
+cat("\n#####################################")
+cat("\n# GET ARGUMENTS FROM COMMAND LINE   #")
+cat("\n#####################################\n\n")
 args <- commandArgs(TRUE)
-
-
-# config_file = "~/HPML.ECC/config-files/ecc-emotions-1.csv"
-
 
 config_file <- args[1]
 
 
+# config_file = "~/HPML.ECC/config-files/ecc-GnegativeGO-1.csv"
+
+
+parameters$Config.File$Name = config_file
 if(file.exists(config_file)==FALSE){
   cat("\n################################################################")
-  cat("#\n HPML.ECC: Missing Config File! Verify the following path:    #")
-  cat("#\n ", config_file, "                                            #")
-  cat("##################################################################\n\n")
+  cat("\n# Missing Config File! Verify the following path:              #")
+  cat("\n################################################################")
+  cat("\n --------------->", config_file)
   break
 } else {
-  cat("\n###################################################")
-  cat("\n# HPML.ECC: Properly loaded configuration file!   #")
-  cat("\n###################################################\n\n")
+  cat("\n########################################")
+  cat("\n# Properly loaded configuration file!  #")
+  cat("\n########################################\n\n")
 }
 
 
-cat("\n##################################################")
-cat("\n# HPML.ECC: Config File                          #")
-cat("\n##################################################\n\n")
+cat("\n########################################")
+cat("\n# Config File                          #")
+cat("\n########################################\n\n")
 config = data.frame(read.csv(config_file))
 print(config)
 
 
 
+
 cat("\n##################################################")
-cat("\n# HPML.ECC: Getting Parameters                   #\n")
-cat("\n##################################################")
+cat("\n# HPML.ECC: Getting Parameters                   #")
+cat("\n##################################################\n\n")
 FolderScripts = toString(config$Value[1])
 FolderScripts = str_remove(FolderScripts, pattern = " ")
 parameters$Config.File$FolderScripts = FolderScripts
@@ -129,32 +153,32 @@ parameters$Config.File$Number.Cores = number_cores
 ds = datasets[number_dataset,]
 parameters$Dataset.Info = ds
 
-
-cat("\n################################################################\n")
 print(ds)
-cat("\n################################################################\n\n")
 
 
-cat("\n#####################################################")
-cat("\n# HPML.ECC: Creating temporary processing folder    #")
-cat("\n#####################################################\n\n")
-if (dir.exists(folderResults) == FALSE) {dir.create(folderResults)}
-
-
-
-cat("\n##################################################")
-cat("\n# HPML.ECC: Loading R Sources                    #")
-cat("\n##################################################\n\n")
+cat("\n########################################")
+cat("\n# Loading R Sources                    #")
+cat("\n########################################\n\n")
 source(file.path(FolderScripts, "libraries.R"))
 source(file.path(FolderScripts, "utils.R"))
 
 
-
-cat("\n#########################################\n")
+cat("\n#########################################")
 cat("\n# HPML.ECC: Get directories             #")
 cat("\n#########################################\n\n")
 diretorios <- directories(parameters)
 parameters$Directories = diretorios
+
+FolderE = paste(parameters$Directories$FolderResults, 
+                "/ECC2", sep="")
+if(dir.exists(FolderE)==FALSE){dir.create(FolderE)}
+parameters$Directories$FolderECC2 = FolderE
+
+
+cat("\n########################################")
+cat("\n# Creating temporary processing folder #")
+cat("\n########################################\n\n")
+if (dir.exists(folderResults) == FALSE) {dir.create(folderResults)}
 
 
 
@@ -266,7 +290,7 @@ if(implementation=="utiml"){
   source(file.path(FolderScripts, "run-python.R"))
   
   cat("\n#########################################################")
-  cat("\n# HPML.ECC:ECC START                                    #")
+  cat("\n# HPML.ECC: ECC START                                   #")
   cat("\n#########################################################\n\n")
   timeFinal <- system.time(results <- run.ecc.python(parameters))  
   
@@ -276,7 +300,7 @@ if(implementation=="utiml"){
   cat("\n#####################################################\n\n")
   result_set <- t(data.matrix(timeFinal))
   setwd(diretorios$folderECC)
-  write.csv(result_set, "Runtime-Final.csv")
+  write.csv(result_set, "runtime-script.csv")
   
   
   cat("\n###################################################")
@@ -290,47 +314,21 @@ if(implementation=="utiml"){
   cat("\n##############################################################")
   cat("\n# HPML.ECC: COMPRESS RESULTS                                 #")
   cat("\n##############################################################\n\n")
+  str_01 = paste("tar -zcvf ", parameters$Directories$FolderResults, "/",
+                 parameters$Dataset.Info$Name, "-results-ecc.tar.gz -C ",
+                 parameters$Directories$FolderResults, " .", sep="")
+  res = system(str_01)
   
-  folder_results <- parameters$Directories$folderResults
-  folder_ecc <- parameters$Directories$folderECC
-  dataset_name <- parameters$Dataset.Info$Name
-  
-  # Compacta o conteúdo DENTRO da pasta ECC (sem incluir a própria pasta)
-  str3 <- paste0(
-    "tar -zcvf ", folder_results, "/", dataset_name, "-results-ecc.tar.gz ",
-    "-C ", folder_ecc, " ."
-  )
-  
-  print(str3)
-  res <- system(str3)
-  
-  if (res != 0) {
-    cat("\nError: ", str3)
-    break
+  if(res!=0){
+    #system(paste("rm -r ", parameters$Directories$FolderResults, sep=""))
+    print(res)
+    stop("\n\n Something went wrong in compressing results files \n\n")
   }
   
-  
-  # 
-  # 
-  # cat("\n##############################################################")
-  # cat("\n# HPML.ECC: COMPRESS RESULTS                                 #")
-  # cat("\n##############################################################\n\n")
-  # str3 <- paste0(    
-  #   "tar -zcvf ", parameters$Directories$folderResults, "/",
-  #   parameters$Dataset.Info$Name, "-results-ecc.tar.gz ",
-  #   parameters$Directories$folderECC
-  # )
-  # print(str3)
-  # res = system(str3)
-  # if (res != 0) {
-  #   cat("\nError: ", str03)
-  #   break
-  # }
   
   cat("\n##########################################################")
   cat("\n# ECC: COPY TO HOME                                      #")
   cat("\n##########################################################\n\n")
-  
   str0 = paste0(FolderRoot, "/Reports")
   if(dir.exists(str0)==FALSE){dir.create(str0)}
   
@@ -338,12 +336,14 @@ if(implementation=="utiml"){
     parameters$Dataset.Info$Name, "-results-ecc.tar.gz")
   
   str5 = paste("cp ", str4, " ", str0, sep="")
-  print(str5)
   res = system(str5)
-  if (res != 0) {
-    cat("\nError: ", str05)
-    break
+  
+  if(res!=0){
+    system(paste("rm -r ", parameters$Directories$FolderResults, sep=""))
+    print(res)
+    stop("\n\n Something went wrong in compressing results files \n\n")
   }
+  
   
 } else {
   

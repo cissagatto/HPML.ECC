@@ -90,7 +90,6 @@ while(w<=length(Implementation.1)){
     # Config file table header
     write("Config, Value", file = output.file, append = TRUE)
     
-    #  
     write("FolderScripts, /lapix/arquivos/elaine/HPML.ECC/R", 
           file = output.file, append = TRUE)
     

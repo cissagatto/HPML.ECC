@@ -10,16 +10,45 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General   #
 # Public License for more details.                                           #
 #                                                                            #
-# Prof. Elaine Cecilia Gatto - UFLA - Lavras, Minas Gerais, Brazil           #
-# Prof. Ricardo Cerri - USP - São Carlos, São Paulo, Brazil                  #
-# Prof. Mauri Ferrandin - UFSC - Blumenau, Santa Catarina, Brazil            #
-# Prof. Celine Vens - Ku Leuven - Kortrijik, West Flanders, Belgium          #
-# PhD Felipe Nakano Kenji - Ku Leuven - Kortrijik, West Flanders, Belgium    #
+# 1 - Prof PhD Elaine Cecilia Gatto                                          #
+# 2 - Prof PhD Ricardo Cerri                                                 #
+# 3 - Prof PhD Mauri Ferrandin                                               #
+# 4 - Prof PhD Celine Vens                                                   #
+# 5 - PhD Felipe Nakano Kenji                                                #
+# 6 - Prof PhD Jesse Read                                                    #
 #                                                                            #
-# BIOMAL - http://www.biomal.ufscar.br                                       #
+# 1 = Federal University of São Carlos - UFSCar - https://www2.ufscar.br     #
+# Campus São Carlos | Computer Department - DC - https://site.dc.ufscar.br | #
+# Post Graduate Program in Computer Science - PPGCC                          # 
+# http://ppgcc.dc.ufscar.br | Bioinformatics and Machine Learning Group      #
+# BIOMAL - http://www.biomal.ufscar.br                                       # 
+#                                                                            # 
+# 1 = Federal University of Lavras - UFLA                                    #
+#                                                                            # 
+# 2 = State University of São Paulo - USP                                    #
+#                                                                            # 
+# 3 - Federal University of Santa Catarina Campus Blumenau - UFSC            #
+# https://ufsc.br/                                                           #
+#                                                                            #
+# 4 and 5 - Katholieke Universiteit Leuven Campus Kulak Kortrijk Belgium     #
+# Medicine Department - https://kulak.kuleuven.be/                           #
+# https://kulak.kuleuven.be/nl/over_kulak/faculteiten/geneeskunde            #
+#                                                                            #
+# 6 - Ecole Polytechnique | Institut Polytechnique de Paris | 1 rue Honoré   #
+# d’Estienne d’Orves - 91120 - Palaiseau - FRANCE                            #
 #                                                                            #
 ##############################################################################
 
+#getwd()
+
+
+###############################################################################
+# SET WORKSAPCE                                                               #
+###############################################################################
+library(here)
+library(stringr)
+FolderRoot <- here::here()
+FolderScripts <- here::here("R")
 
 
 
@@ -42,7 +71,7 @@ execute.ecc.python <- function(parameters){
   # while(f<=parameters$Config.File$Number.Folds){
     
     #########################################################################
-    cat("\nFold: ", f)
+    # cat("\nFold: ", f)
     source(file.path(parameters$Config.File$FolderScripts, "libraries.R"))
     source(file.path(parameters$Config.File$FolderScripts, "utils.R"))
     
@@ -50,6 +79,9 @@ execute.ecc.python <- function(parameters){
     ##########################################################################
     FolderSplit = paste(parameters$Directories$folderECC , "/Split-", f, sep="")
     if(dir.exists(FolderSplit)==FALSE){dir.create(FolderSplit)}
+    
+    FolderSplit2 = paste(parameters$Directories$FolderECC2 , "/Split-", f, sep="")
+    if(dir.exists(FolderSplit2)==FALSE){dir.create(FolderSplit2)}
     
     
     ##########################################################################
@@ -78,12 +110,12 @@ execute.ecc.python <- function(parameters){
     labels.indices = seq(parameters$Dataset.Info$LabelStart, 
                          parameters$Dataset.Info$LabelEnd, by=1)
     
+    
     ##########################################################################
     mldr.treino = mldr_from_dataframe(train, labelIndices = labels.indices)
     mldr.teste = mldr_from_dataframe(test, labelIndices = labels.indices)
     mldr.val = mldr_from_dataframe(val, labelIndices = labels.indices)
     mldr.tv = mldr_from_dataframe(tv, labelIndices = labels.indices)
-    
     
     
     ##################################################################
@@ -97,18 +129,35 @@ execute.ecc.python <- function(parameters){
                         FolderSplit, " ", 
                         fold = f,
                         sep="")
-    
-    start <- proc.time()
-    res = print(system(str.execute))
-    tempo = data.matrix((proc.time() - start))
-    tempo = data.frame(t(tempo))
-    write.csv(tempo, paste(FolderSplit, "/runtime-fold.csv", sep=""))
-    
+    res = system(str.execute)
     if(res!=0){
-      break
+      system(paste("rm -r ", parameters$Directories$FolderResults, sep=""))
+      stop("\n\n Something went wrong in python VERSION 2\n\n")
+    } else {
+      message("\n\n PYTHON RAN OK! \n\n")
     }
     
-    #f = f + 1
+    
+    ##################################################################
+    # EXECUTE ECC PYTHON
+    str.execute2 = paste("python3 ", parameters$Directories$FolderPython,
+                        "/main2.py ", 
+                        train.file.name, " ",
+                        val.file.name,  " ",
+                        test.file.name, " ", 
+                        start = as.numeric(parameters$Dataset.Info$AttEnd), " ", 
+                        FolderSplit2, " ", 
+                        fold = f,
+                        sep="")
+    res = system(str.execute2)
+    if(res!=0){
+      system(paste("rm -r ", parameters$Directories$FolderResults, sep=""))
+      stop("\n\n Something went wrong in python VERSION 2\n\n")
+    } else {
+      message("\n\n PYTHON RAN OK! \n\n")
+    }
+    
+    # f = f + 1
     gc()
   }
   
@@ -125,22 +174,24 @@ execute.ecc.python <- function(parameters){
 ############################################################################
 #
 ############################################################################
-evaluate.ecc.python <- function(parameters){
+evaluate.ecc.python <- function(parameters, folder){
   
   # f = 1
   avaliaParalel <- foreach (f = 1:parameters$Config.File$Number.Folds) %dopar%{
-    # while(f<=parameters$Config.File$Number.Folds){
+  # while(f<=parameters$Config.File$Number.Folds){
     
     #########################################################################
     cat("\nFold: ", f)
     
+    
+    ###########################################################################
+    FolderSplit = paste(folder, "/Split-", f, sep="")
+    
+
     ##########################################################################
     source(file.path(parameters$Config.File$FolderScripts, "libraries.R"))
     source(file.path(parameters$Config.File$FolderScripts, "utils.R"))
-
-    ###########################################################################
-    FolderSplit = paste(parameters$Directories$folderECC, "/Split-", f, sep="")
-    if(dir.exists(FolderSplit)==FALSE){dir.create(FolderSplit)}
+    
     
     ##########################################################################
     train.file.name = paste(parameters$Directories$folderCVTR, "/", 
@@ -161,9 +212,11 @@ evaluate.ecc.python <- function(parameters){
     val = data.frame(read.csv(val.file.name))
     tv = rbind(train, val)
     
+    
     ##########################################################################
     labels.indices = seq(parameters$Dataset.Info$LabelStart, 
                          parameters$Dataset.Info$LabelEnd, by=1)
+    
     
     ##########################################################################
     mldr.treino = mldr_from_dataframe(train, labelIndices = labels.indices)
@@ -171,10 +224,11 @@ evaluate.ecc.python <- function(parameters){
     mldr.val = mldr_from_dataframe(val, labelIndices = labels.indices)
     mldr.tv = mldr_from_dataframe(tv, labelIndices = labels.indices)
     
+    
     ###################################################################
-    #cat("\nGet the true and predict lables")
     y_true = data.frame(read.csv(paste0(FolderSplit, "/y_true.csv")))
     y_proba = data.frame(read.csv(paste0(FolderSplit, "/y_pred_proba.csv")))
+    
     
     ####################################################################################
     y.true.2 = data.frame(sapply(y_true, function(x) as.numeric(as.character(x))))
@@ -199,14 +253,42 @@ evaluate.ecc.python <- function(parameters){
               paste(FolderSplit, "/y_pred_thrLC.csv", sep=""),
               row.names = FALSE)
     
-    ##########################################################################
-    y_threshold_05 = sapply(y_threshold_05, function(x) as.numeric(as.character(x)))
-    y_threshold_card = sapply(y_threshold_card, function(x) as.numeric(as.character(x)))
+    #########################################################################
+    y_threshold_05 <- data.frame(as.matrix(fixed_threshold(y_proba,
+                                                           threshold = 0.5)))
+    write.csv(y_threshold_05,
+              paste(FolderSplit, "/y_pred_thr05.csv", sep=""),
+              row.names = FALSE)
+
+    ########################################################################
+    y_threshold_card = lcard_threshold(as.matrix(y_proba),
+                                       mldr.tv$measures$cardinality,
+                                       probability = F)
+    write.csv(y_threshold_card,
+              paste(FolderSplit, "/y_pred_thrLC.csv", sep=""),
+              row.names = FALSE)
     
     
     ##########################################################################    
     avaliacao(f = f, y_true = y.true.3, y_pred = y_proba,
               salva = FolderSplit, nome = "results-utiml")
+    
+    ##########################################################################    
+    avaliacao(f = f, y_true = y.true.3, y_pred = y_proba,
+              salva = FolderSplit, nome = "results-utiml")
+    
+    ##########################################################################    
+    roc.curve(f = f, y_pred = y_proba, test = y.true.3, 
+              Folder = FolderSplit, 
+              nome = paste(FolderSplit, "/results-mldr.csv", sep=""))
+    
+    ##########################################################################    
+    # auprc.curve <- function(y_true, y_proba, Folder, nome){
+    auprc.curve(y_true = y_true, 
+                y_proba = y_proba,
+                Folder = FolderSplit, 
+                nome = paste(FolderSplit, "/results-r.csv", sep=""))
+    
     
     # f = f + 1
     gc()
@@ -224,132 +306,125 @@ evaluate.ecc.python <- function(parameters){
 ###########################################################################
 #
 ###########################################################################
-gather.eval.python.silho <- function(parameters){
+gather.eval.python.silho <- function(parameters, folder){
   
-  final.runtime.r = data.frame()
-  final.runtime.p = data.frame()
+  print(folder)
+  
+  final.runtime = data.frame()
   final.results = data.frame(apagar=c(0))
-  
-  all.model.size.chains = data.frame(matrix(ncol = 0, nrow = 10))
-  all.model.size.total = data.frame()
-  all.model.size = data.frame()
-  
-  all.runtime.train.chain = data.frame()
-  
-  all.time.test = data.frame()
-  all.time.train.chains = data.frame(matrix(ncol = 0, nrow = 10))
-  all.time.train = data.frame()
+  final.results.2 = data.frame(apagar=c(0))
+  final.model.size = data.frame()
+  final.auprc = data.frame() 
   
   f = 1
   while(f<=parameters$Config$Number.Folds){
     
+    
+    #########################################################################
+    folderSplit = paste(folder, "/Split-", f, sep="")
+    
     cat("\nFold: ", f)
     
-    #########################################################################
-    folderSplit = paste(parameters$Directories$folderECC,
-                        "/Split-", f, sep="")
+    # Lista de arquivos esperados para esse fold
+    arquivos_esperados <- c(
+      "results-python.csv",
+      "results-utiml.csv",
+      "results-mldr.csv",
+      "results-r.csv",
+      "model-size.csv",
+      "runtime-python.csv",
+      "r-auprc-per-label.csv"
+    )
     
-    #########################################################################
-    res.model.size = data.frame(read.csv(paste(folderSplit, "/model_size.csv", sep="")))
-    res.model.size = data.frame(fold = f, res.model.size)
-    colnames(res.model.size) = c("fold", "size")
-    all.model.size = rbind(all.model.size, res.model.size)
+    # Caminhos completos
+    arquivos_caminho <- file.path(folderSplit, arquivos_esperados)
     
+    # Verificar existência
+    arquivos_faltando <- arquivos_caminho[!file.exists(arquivos_caminho)]
     
-    #########################################################################
-    res.model.size.chains = data.frame(read.csv(paste(folderSplit, 
-                                                      "/model_sizes_chains.csv", 
-                                                      sep="")))
-    names(res.model.size.chains) = c("Chain_Index", paste0("Fold-",f))
-    all.model.size.chains = cbind(all.model.size.chains, res.model.size.chains)
-    
-    
-    #########################################################################
-    res.model.size.total = data.frame(read.csv(paste(folderSplit, 
-                                               "/model_size_total.csv", 
-                                               sep="")))
-    names(res.model.size.total) = "size"
-    res.model.size.total = data.frame(fold = f, res.model.size.total)
-    all.model.size.total = rbind(all.model.size.total, res.model.size.total)
+    if (length(arquivos_faltando) > 0) {
+      cat("\n\nErro: os seguintes arquivos não foram encontrados no fold", f, ":\n")
+      print(arquivos_faltando)
+      stop("\n\nExecução interrompida — arquivos ausentes.")
+    }
     
     
     #########################################################################
     res.python = data.frame(read.csv(paste(folderSplit, 
                                            "/results-python.csv", sep="")))
-    names(res.python) = c("Measures", paste0("Fold-",f))
+    names(res.python) = c("Measures", paste0("Fold",f))
     
     res.utiml = data.frame(read.csv(paste(folderSplit, 
                                           "/results-utiml.csv", sep="")))
-    names(res.utiml) = c("Measures", paste0("Fold-",f))
+    names(res.utiml) = c("Measures", paste0("Fold",f))
     
     resultados = rbind(res.python, res.utiml)
     final.results = cbind(final.results, resultados)
     
+    #########################################################################
+    res.mldr = data.frame(read.csv(paste(folderSplit, 
+                                         "/results-mldr.csv", sep="")))
+    names(res.mldr ) = c("Measures", paste0("Fold",f))
+    
+    res.r = data.frame(read.csv(paste(folderSplit, 
+                                      "/results-r.csv", sep="")))
+    names(res.r) = c("Measures", paste0("Fold",f))
+    
+    resultados = rbind(res.mldr, res.r)
+    final.results.2 = cbind(final.results.2, resultados)
     
     #########################################################################
-    res.runtime.train.chain = data.frame(read.csv(paste(folderSplit, 
-                                                  "/runtime_chains.csv", sep="")))
-    res.runtime.train.chain = data.frame(fold = f, res.runtime.train.chain)
-    colnames(res.runtime.train.chain) = c("fold", "train")
-    all.runtime.train.chain = rbind(all.runtime.train.chain, res.runtime.train.chain)
-    
-    
-    #########################################################################
-    res.runtime.fold = data.frame(read.csv(paste(folderSplit, 
-                                                 "/runtime-fold.csv", sep="")))
-    res.runtime.fold = res.runtime.fold[,-1]
-    res.runtime.fold = data.frame(fold=f, res.runtime.fold)
-    final.runtime.r = rbind(final.runtime.r, res.runtime.fold)
-    
+    res.model.size = data.frame(read.csv(paste(folderSplit, 
+                                               "/model-size.csv", sep="")))
+    names(res.model.size) = "Bytes"
+    resultado = data.frame(fold = f, res.model.size)
+    final.model.size = rbind(final.model.size, resultado)
     
     #########################################################################
     res.runtime.python = data.frame(read.csv(paste(folderSplit, 
-                                                 "/runtime-python.csv", sep="")))
-    res.runtime.python = data.frame(fold=f, res.runtime.python)
-    colnames(res.runtime.python) = c("fold", "train", "test")
-    final.runtime.p = rbind(final.runtime.p, res.runtime.python)
-    
+                                                   "/runtime-python.csv", sep="")))
+    res.runtime.python = data.frame(fold = f, res.runtime.python)
+    final.runtime = rbind(final.runtime, res.runtime.python)
     
     #########################################################################
-    res.time.train.chains = data.frame(read.csv(paste(folderSplit, 
-                                                      "/time_train_chains.csv", 
-                                                      sep="")))
-    colnames(res.time.train.chains) = c("Chain_Index", paste0("Fold-",f))
-    all.time.train.chains = cbind(all.time.train.chains, res.time.train.chains)
+    res.auprc = data.frame(read.csv(paste(folderSplit, 
+                                          "/r-auprc-per-label.csv", sep="")))
+    res.auprc = data.frame(fold = f, res.auprc)
+    final.auprc = rbind(final.auprc, res.auprc)
     
-    
-    ###########################################################################
-    #system(paste("rm -r ", folderSplit, "/results-python.csv", sep=""))
-    #system(paste("rm -r ", folderSplit, "/results-utiml.csv", sep=""))
-    #system(paste("rm -r ", folderSplit, "/model_sizes_chains.csv", sep=""))
-    #system(paste("rm -r ", folderSplit, "/model_sizes_total.csv", sep=""))
-    #system(paste("rm -r ", folderSplit, "/time_train_chains.csv", sep=""))
-    #system(paste("rm -r ", folderSplit, "/time_train_total.csv", sep=""))
-    #system(paste("rm -r ", folderSplit, "/runtime-fold.csv", sep=""))
-    #system(paste("rm -r ", folderSplit, "/runtime-python.csv", sep=""))
+    #################################
+    # /tmp/gr-emotions/Global/Split-1
+    system(paste0("rm -r ", folderSplit, "/model-size.csv", sep=""))
+    system(paste0("rm -r ", folderSplit, "/r-auprc-per-label.csv", sep=""))
+    system(paste0("rm -r ", folderSplit, "/results-mldr.csv", sep=""))
+    system(paste0("rm -r ", folderSplit, "/results-python.csv", sep=""))
+    system(paste0("rm -r ", folderSplit, "/results-r.csv", sep=""))
+    system(paste0("rm -r ", folderSplit, "/results-utiml.csv", sep=""))
+    system(paste0("rm -r ", folderSplit, "/runtime-python.csv", sep=""))
+    system(paste0("rm -r ", folderSplit, "/y_pred_thr05.csv", sep=""))
     
     f = f + 1
     gc()
   } 
   
-  
-  setwd(parameters$Directories$folderECC)
-  write.csv(all.model.size, "model-size.csv", row.names = FALSE)
-  
-  all.model.size.chains <- all.model.size.chains[, !duplicated(colnames(all.model.size.chains))]
-  write.csv(all.model.size.chains, "model-size-chains.csv", row.names = FALSE)
-   
-  write.csv(all.model.size.total, "model-size-total.csv", row.names = FALSE)
-  
   final.results <- final.results[, !duplicated(colnames(final.results))]
-  write.csv(final.results, "performance.csv", row.names = FALSE)
+  final.results = final.results[,-1]
+  nome = paste0(folder, "/performance.csv")
+  write.csv(final.results, nome, row.names = FALSE)
   
-  write.csv(final.runtime.r, "runtime-r", row.names = FALSE)
-  write.csv(final.runtime.p, "runtime-python.csv", row.names = FALSE)
+  final.results.2 <- final.results.2[, !duplicated(colnames(final.results.2))]
+  final.results.2 = final.results.2[,-1]
+  nome = paste0(folder, "/performance2.csv")
+  write.csv(final.results.2, nome, row.names = FALSE)
   
-  all.time.train.chains <- all.time.train.chains[, !duplicated(colnames(all.time.train.chains))]
-  write.csv(all.time.train.chains, "runtime-train-chains-folds.csv", row.names = FALSE)
+  nome = paste0(folder, "/model-size.csv")
+  write.csv(final.model.size, nome, row.names = FALSE)
   
+  nome = paste0(folder, "/runtime.csv")
+  write.csv(final.runtime, nome, row.names = FALSE)
+  
+  nome = paste0(folder, "/auprc-r.csv")
+  write.csv(final.auprc, nome, row.names = FALSE)
   
   gc()
   cat("\n########################################################")
@@ -365,3 +440,4 @@ gather.eval.python.silho <- function(parameters){
 # Please, any errors, contact us: elainececiliagatto@gmail.com                                   #
 # Thank you very much!                                                                           #
 ################################################################################################
+

@@ -1,9 +1,0 @@
-Config, Value
-FolderScripts, ~/HPML.ECC/R
-Dataset_Path, ~/HPML.ECC/Datasets
-Temporary_Path, /tmp/ecc-emotions
-Implementation, rf
-Dataset_Name, emotions
-Number_Dataset, 26
-Number_Folds, 10
-Number_Cores, 1

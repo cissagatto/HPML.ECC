@@ -38,6 +38,21 @@ import os
 import numpy as np
 import pandas as pd
 
+import pandas as pd
+import numpy as np
+from sklearn.metrics import (
+    accuracy_score, hamming_loss, zero_one_loss,
+    average_precision_score, f1_score, precision_score,
+    recall_score, jaccard_score, roc_auc_score, precision_recall_curve,
+    precision_recall_fscore_support, roc_curve, auc, coverage_error, 
+    label_ranking_loss
+)
+
+import confusion_matrix as cm
+import measures as ms
+
+
+
 
 #======================================================================#
 # BIPARTITIONS                                                         #
@@ -202,7 +217,7 @@ def mlem_subset_accuracy(true_labels: pd.DataFrame, pred_labels: pd.DataFrame) -
 #       4. Ranking Error                                               #
 #       5. Margin Loss                                                 #
 #       6. Ranking Loss                                                #
-#       7. Margin Loss                                                 #
+#       7. Marging Loss                                                 #
 #======================================================================#
 
 
@@ -646,7 +661,7 @@ def mlem_clp(confusion_matrix: pd.DataFrame) -> float:
     Reference:
     ----------
     [1] Rivolli, A., Soares, C., & Carvalho, A. C. P. de L. F. de. (2018). 
-        Enhancing multilabel classification for food truck recommendation. 
+        multilabel classification for food truck recommendation. 
         Expert Systems. Wiley-Blackwell. DOI: 10.1111/exsy.12304
 
     Example:
@@ -784,3 +799,13 @@ def mlem_wlp(confusion_matrix: pd.DataFrame) -> float:
     return wlp
 
 
+
+
+def mlem_wlp2(conf_matrix: pd.DataFrame) -> float:
+    return (conf_matrix['TPi'] == 0).mean()
+
+def mlem_mlp2(conf_matrix: pd.DataFrame) -> float:
+    return ((conf_matrix['TPi'] + conf_matrix['FPi']) == 0).mean()
+
+def mlem_clp2(conf_matrix: pd.DataFrame) -> float:
+    return ((conf_matrix['TNi'] + conf_matrix['FNi']) == 0).mean()

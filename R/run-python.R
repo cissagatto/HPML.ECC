@@ -10,15 +10,46 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General   #
 # Public License for more details.                                           #
 #                                                                            #
-# Prof. Elaine Cecilia Gatto - UFLA - Lavras, Minas Gerais, Brazil           #
-# Prof. Ricardo Cerri - USP - São Carlos, São Paulo, Brazil                  #
-# Prof. Mauri Ferrandin - UFSC - Blumenau, Santa Catarina, Brazil            #
-# Prof. Celine Vens - Ku Leuven - Kortrijik, West Flanders, Belgium          #
-# PhD Felipe Nakano Kenji - Ku Leuven - Kortrijik, West Flanders, Belgium    #
+# 1 - Prof PhD Elaine Cecilia Gatto                                          #
+# 2 - Prof PhD Ricardo Cerri                                                 #
+# 3 - Prof PhD Mauri Ferrandin                                               #
+# 4 - Prof PhD Celine Vens                                                   #
+# 5 - PhD Felipe Nakano Kenji                                                #
+# 6 - Prof PhD Jesse Read                                                    #
 #                                                                            #
-# BIOMAL - http://www.biomal.ufscar.br                                       #
+# 1 = Federal University of São Carlos - UFSCar - https://www2.ufscar.br     #
+# Campus São Carlos | Computer Department - DC - https://site.dc.ufscar.br | #
+# Post Graduate Program in Computer Science - PPGCC                          # 
+# http://ppgcc.dc.ufscar.br | Bioinformatics and Machine Learning Group      #
+# BIOMAL - http://www.biomal.ufscar.br                                       # 
+#                                                                            # 
+# 1 = Federal University of Lavras - UFLA                                    #
+#                                                                            # 
+# 2 = State University of São Paulo - USP                                    #
+#                                                                            # 
+# 3 - Federal University of Santa Catarina Campus Blumenau - UFSC            #
+# https://ufsc.br/                                                           #
+#                                                                            #
+# 4 and 5 - Katholieke Universiteit Leuven Campus Kulak Kortrijk Belgium     #
+# Medicine Department - https://kulak.kuleuven.be/                           #
+# https://kulak.kuleuven.be/nl/over_kulak/faculteiten/geneeskunde            #
+#                                                                            #
+# 6 - Ecole Polytechnique | Institut Polytechnique de Paris | 1 rue Honoré   #
+# d’Estienne d’Orves - 91120 - Palaiseau - FRANCE                            #
 #                                                                            #
 ##############################################################################
+
+#getwd()
+
+
+###############################################################################
+# SET WORKSAPCE                                                               #
+###############################################################################
+library(here)
+library(stringr)
+FolderRoot <- here::here()
+FolderScripts <- here::here("R")
+
 
 
 
@@ -78,23 +109,39 @@ run.ecc.python <- function(parameters){
   
   
   cat("\n############################################################")
-  cat("\n# RUN: Evaluate                                            #")
+  cat("\n# RUN: Evaluate 1                                          #")
   cat("\n############################################################\n\n")
-  time.evaluate = system.time(evaluate.ecc.python(parameters))
+  time.evaluate = system.time(evaluate.ecc.python(parameters,
+                                                  folder = parameters$Directories$folderECC))
   
   
   cat("\n############################################################")
-  cat("\n# RUN: Gather Evaluated Measures                           #")
+  cat("\n# RUN: Evaluate 2                                          #")
   cat("\n############################################################\n\n")
-  time.gather.evaluate = system.time(gather.eval.python.silho(parameters))
+  time.evaluate = system.time(evaluate.ecc.python(parameters,
+                                                  folder = parameters$Directories$FolderECC2))
   
   
   cat("\n############################################################")
-  cat("\n# RUN: Save Runtime                                        #")
-  cat("\n##############################################################\n\n")
-  RunTimeecc = rbind(time.execute, time.evaluate, time.gather.evaluate)
-  setwd(diretorios$folderECC)
-  write.csv(RunTimeecc, "runtime-run-python.csv")
+  cat("\n# RUN: Gather Evaluated Measures 1                         #")
+  cat("\n############################################################\n\n")
+  time.gather.evaluate = system.time(gather.eval.python.silho(parameters,
+                                                              folder = parameters$Directories$folderECC))
+  
+  
+  cat("\n############################################################")
+  cat("\n# RUN: Gather Evaluated Measures 2                         #")
+  cat("\n############################################################\n\n")
+  time.gather.evaluate = system.time(gather.eval.python.silho(parameters,
+                                                              folder = parameters$Directories$FolderECC2))
+  
+  
+  #cat("\n############################################################")
+  #cat("\n# RUN: Save Runtime                                        #")
+  #cat("\n##############################################################\n\n")
+  #RunTimeecc = rbind(time.execute, time.evaluate, time.gather.evaluate)
+  #setwd(diretorios$folderECC)
+  #write.csv(RunTimeecc, "runtime-run-python.csv")
   
   
   cat("\n\n############################################################")

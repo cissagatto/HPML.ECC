@@ -435,8 +435,12 @@ def multilabel_bipartition_measures(true_labels: pd.DataFrame, pred_labels: pd.D
 
     # Basic metrics
     accuracy_mlem = ms.mlem_accuracy(true_labels, pred_labels)
-    hamming_l = hamming_loss(np.array(true_labels), np.array(pred_labels))    
-    zol = zero_one_loss(np.array(true_labels), np.array(pred_labels))    
+    
+    # Convert probabilities to binary
+    pred_labels_bin = (pred_labels.values >= 0.5).astype(int)
+    true_labels_bin = true_labels.values.astype(int)
+    hamming_l = hamming_loss(np.array(true_labels_bin), np.array(pred_labels_bin))    
+    zol = zero_one_loss(np.array(true_labels_bin), np.array(pred_labels_bin))    
     sa = ms.mlem_subset_accuracy(true_labels, pred_labels)
 
     # Precision Scores
@@ -608,9 +612,9 @@ def multilabel_curves_measures(true_labels: pd.DataFrame, pred_scores: pd.DataFr
     return metrics_df
 
 
-########################################################################
-#                                                                      #
-########################################################################
+#=================================================================#
+# ROBUST MULITLABEL METRIC - RETURNS IGNORED CLASSES IN A DF      #
+#=================================================================#
 def robust_multilabel_metric(y_true, y_scores, metric_func, average='macro', class_names=None, verbose=True):
     """
     Compute robust multilabel evaluation metrics, ignoring classes with undefined behavior.
@@ -670,67 +674,122 @@ def robust_multilabel_metric(y_true, y_scores, metric_func, average='macro', cla
     Notes
     -----
     Author: Mauri Ferrandin and Elaine Cecília Gatto
-    """
+    """    
+
+    # Initialize list to store ignored class names (those with only one label type)
     ignored_classes = []
+
+    # List to collect valid per-class metric scores
     valid_scores = []
 
+    # Get the number of classes (columns in y_true)
     n_classes = y_true.shape[1]
 
+    # Iterate over each class (column)
     for i in range(n_classes):
+
+        # Extract the true labels and predicted scores for the current class
         true_col = y_true[:, i]
         pred_col = y_scores[:, i]
 
+        #-------------------------------------------------------------------#
+        # Check if the class has both positive and negative samples
+        #-------------------------------------------------------------------#
         if len(np.unique(true_col)) < 2:
+
+            # Determine the class name (use provided or default)
             class_label = class_names[i] if class_names else f"Class {i}"
+
+            # Add this class to the ignored list
             ignored_classes.append(class_label)
+
+            # Optionally print a warning message
             if verbose:
                 print(f"⚠️ Class '{class_label}' ignored: only one class present in true labels.")
             continue
 
+
+        #-------------------------------------------------------------------#
+        # 
+        #-------------------------------------------------------------------#
         try:
+            # Temporarily suppress warnings about undefined metrics
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", category=UserWarning)
                 warnings.simplefilter("ignore", category=UndefinedMetricWarning)
+                 
+                # --------> Compute the metric for this class <--------
                 score_i = metric_func(true_col, pred_col)
+            
+            # Store the valid score
             valid_scores.append(score_i)
-        except ValueError:
+
+        except ValueError:            
+            # Handle exceptions raised by the metric function
             class_label = class_names[i] if class_names else f"Class {i}"
             ignored_classes.append(class_label)
             if verbose:
                 print(f"⚠️ Class '{class_label}' ignored due to error when computing the metric.")
 
+    
+    #-------------------------------------------------------------------#
+    # If no valid classes remain, return NaN and the ignored list
+    #-------------------------------------------------------------------#
     if not valid_scores:
         if verbose:
             print(f"⚠️ Metric '{metric_func.__name__}' with '{average}' averaging failed: no valid classes.")
         return np.nan, ignored_classes
+    
 
+    #-------------------------------------------------------------------#
+    # Handle averaging options
+    #-------------------------------------------------------------------#
+
+    # --->  1. Macro average: mean of all valid per-class scores
     if average == 'macro':
         return np.mean(valid_scores), ignored_classes
+    
+    # --->  2. Weighted average: mean weighted by class support (number of positives)
     elif average == 'weighted':
+        # Compute supports for valid classes only
         supports = [np.sum(y_true[:, i]) for i in range(n_classes) if len(np.unique(y_true[:, i])) > 1]
+        
+        # Total number of positive labels across valid classes
         total_support = np.sum(supports)
+        
+        # Compute normalized weights
         weights = [s / total_support for s in supports]
+
+        # Weighted average of scores
         return np.average(valid_scores, weights=weights), ignored_classes
+    
+    # ---> 3. Samples average: compute per-sample metric then average
     elif average == 'samples':
         try:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", category=UserWarning)
+                # Compute the sample-based average directly using the metric function
                 return metric_func(y_true, y_scores, average='samples'), ignored_classes
         except ValueError:
+            # Return NaN if computation fails
             return np.nan, ignored_classes
+    
+    # ---> 4. Micro average: aggregate all predictions and compute a global metric
     elif average == 'micro':
         try:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", category=UserWarning)
+                # Compute the micro-averaged score
                 return metric_func(y_true, y_scores, average='micro'), ignored_classes
         except ValueError:
+            # Return NaN if the computation fails
             return np.nan, ignored_classes
     
     
 
-########################################################################
-#                                                                      #
-########################################################################
+#=================================================================#
+# MULTILABEL CURVE METRICS - CALLS ROBUST MULTILABEL METRIC       #
+#=================================================================#
 def multilabel_curve_metrics(true_labels: pd.DataFrame, predicted_scores: pd.DataFrame):
     """
     Compute multilabel curve-based evaluation metrics (AUPRC and ROC AUC) with support 
@@ -782,7 +841,6 @@ def multilabel_curve_metrics(true_labels: pd.DataFrame, predicted_scores: pd.Dat
     """
     metrics_data = []
     ignored_data = []
-
     class_names = true_labels.columns.tolist()
 
     for metric_func, metric_name in [
@@ -815,13 +873,10 @@ def multilabel_curve_metrics(true_labels: pd.DataFrame, predicted_scores: pd.Dat
     return metrics_df, ignored_df
 
 
-
-
-
 ########################################################################
 #                                                                      #
 ########################################################################
-def safe_predict_proba_ecc(model, X_test, Y_train):
+def safe_predict_proba_ecc(model, X_test, Y_test):
     """
     Safely computes class probabilities for ECC (Ensemble of Classifier Chains),
     handling cases where some classifiers were trained on a single class only.
@@ -837,8 +892,8 @@ def safe_predict_proba_ecc(model, X_test, Y_train):
     X_test : pandas.DataFrame or np.ndarray
         Feature matrix for prediction.
     
-    Y_train : pandas.DataFrame
-        Training label matrix used to determine the number and names of the labels.
+    Y_test : pandas.DataFrame
+        names of the labels.
 
     Returns
     -------
@@ -859,7 +914,7 @@ def safe_predict_proba_ecc(model, X_test, Y_train):
 
     for chain_idx, chain in enumerate(model.chains):
         n_samples = X_test.shape[0]
-        n_labels = Y_train.shape[1]
+        n_labels = Y_test.shape[1]
         probas = np.zeros((n_samples, n_labels))
         X_aug = X_test.values
 
@@ -878,4 +933,4 @@ def safe_predict_proba_ecc(model, X_test, Y_train):
         all_chain_probas.append(probas)
 
     mean_proba = np.mean(all_chain_probas, axis=0)
-    return pd.DataFrame(mean_proba, columns=Y_train.columns)
+    return pd.DataFrame(mean_proba, columns=Y_test.columns)
