@@ -314,13 +314,14 @@ if(implementation=="utiml"){
   cat("\n##############################################################")
   cat("\n# HPML.ECC: COMPRESS RESULTS                                 #")
   cat("\n##############################################################\n\n")
-  str_01 = paste("tar -zcvf ", parameters$Directories$FolderResults, "/",
-                 parameters$Dataset.Info$Name, "-results-ecc.tar.gz -C ",
-                 parameters$Directories$FolderResults, " .", sep="")
-  res = system(str_01)
+  folder_results <- parameters$Directories$FolderResults
+  output_tar <- paste0(folder_results, "/", parameters$Dataset.Info$Name, "-results-ecc.tar.gz")
   
-  if(res!=0){
-    #system(paste("rm -r ", parameters$Directories$FolderResults, sep=""))
+  str_01 <- paste0("tar -zcvf ", output_tar, " -C ", folder_results, " ECC ECC2")
+  res <- system(str_01)
+  
+  if(res != 0){
+    system(paste("rm -r ", parameters$Directories$FolderResults, sep=""))
     print(res)
     stop("\n\n Something went wrong in compressing results files \n\n")
   }
