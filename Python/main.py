@@ -92,10 +92,10 @@ if __name__ == '__main__':
     train = pd.concat([train,valid],axis=0).reset_index(drop=True) 
 
     print("\n\n%==============================================%")
-    print("train: ", sys.argv[1])
-    print("valid: ", sys.argv[2])
-    print("test: ", sys.argv[3])
-    print("label start: ", sys.argv[4])
+    #print("train: ", sys.argv[1])
+    #print("valid: ", sys.argv[2])
+    #print("test: ", sys.argv[3])
+    #print("label start: ", sys.argv[4])
     print("output_dir: ", sys.argv[5])
     print("%==============================================%\n\n")
 
@@ -163,8 +163,8 @@ if __name__ == '__main__':
 
    
     # =========== SAVE MEASURES ===========   
-    metrics_df = eval.multilabel_curves_measures(Y_test, pd.DataFrame(proba_df, columns=labels_y_test))
-    metrics_df.to_csv(os.path.join(directory, "results-python.csv"), index=False)           
+    #metrics_df = eval.multilabel_curves_measures(Y_test, pd.DataFrame(proba_df, columns=labels_y_test))
+    #metrics_df.to_csv(os.path.join(directory, "results-python.csv"), index=False)           
     
 
     # =========== SAVE MODEL SIZE EM BYTES ===========

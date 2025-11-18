@@ -309,23 +309,31 @@ if(implementation=="utiml"){
   str5 = paste("rm -r ", diretorios$folderDataset, sep="")
   print(system(str5))
   
+  # /tmp/ecc-GnegativeGO/ECC2
+  str5 = paste("rm -r ", diretorios$folderResults, "/ECC2", sep="")
+  print(system(str5))
   
   
   cat("\n##############################################################")
   cat("\n# HPML.ECC: COMPRESS RESULTS                                 #")
   cat("\n##############################################################\n\n")
-  folder_results <- parameters$Directories$FolderResults
-  output_tar <- paste0(folder_results, "/", parameters$Dataset.Info$Name, "-results-ecc.tar.gz")
+  # base_dir   <- "/tmp/d-GnegativeGO/Tested"
+  base_dir   <- parameters$Directories$folderECC
   
-  str_01 <- paste0("tar -zcvf ", output_tar, " -C ", folder_results, " ECC ECC2")
-  res <- system(str_01)
+  # output_tar <- "/tmp/d-GnegativeGO/GnegativeGO-results-hpml.tar.gz"
+  output_tar <- paste0(parameters$Directories$FolderResults, "/",
+                       parameters$Dataset.Info$Name, "-results-ecc.tar.gz")
   
-  if(res != 0){
-    system(paste("rm -r ", parameters$Directories$FolderResults, sep=""))
-    print(res)
-    stop("\n\n Something went wrong in compressing results files \n\n")
+  cmd <- paste("tar -zcvf", output_tar, "-C", base_dir, ".")
+  res = system(cmd)
+  
+  if (res != 0) {
+    #system(paste("rm -r", base_dir))
+    #print(res)
+    message("\n\n Something went wrong in compressing results files \n\n")
+  } else {
+    cat("\n✅ Compressão concluída com sucesso!\n")
   }
-  
   
   cat("\n##########################################################")
   cat("\n# ECC: COPY TO HOME                                      #")

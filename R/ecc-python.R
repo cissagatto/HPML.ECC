@@ -137,25 +137,7 @@ execute.ecc.python <- function(parameters){
       message("\n\n PYTHON RAN OK! \n\n")
     }
     
-    
-    ##################################################################
-    # EXECUTE ECC PYTHON
-    str.execute2 = paste("python3 ", parameters$Directories$FolderPython,
-                        "/main2.py ", 
-                        train.file.name, " ",
-                        val.file.name,  " ",
-                        test.file.name, " ", 
-                        start = as.numeric(parameters$Dataset.Info$AttEnd), " ", 
-                        FolderSplit2, " ", 
-                        fold = f,
-                        sep="")
-    res = system(str.execute2)
-    if(res!=0){
-      system(paste("rm -r ", parameters$Directories$FolderResults, sep=""))
-      stop("\n\n Something went wrong in python VERSION 2\n\n")
-    } else {
-      message("\n\n PYTHON RAN OK! \n\n")
-    }
+   
     
     # f = f + 1
     gc()
@@ -253,29 +235,11 @@ evaluate.ecc.python <- function(parameters, folder){
               paste(FolderSplit, "/y_pred_thrLC.csv", sep=""),
               row.names = FALSE)
     
-    #########################################################################
-    y_threshold_05 <- data.frame(as.matrix(fixed_threshold(y_proba,
-                                                           threshold = 0.5)))
-    write.csv(y_threshold_05,
-              paste(FolderSplit, "/y_pred_thr05.csv", sep=""),
-              row.names = FALSE)
-
-    ########################################################################
-    y_threshold_card = lcard_threshold(as.matrix(y_proba),
-                                       mldr.tv$measures$cardinality,
-                                       probability = F)
-    write.csv(y_threshold_card,
-              paste(FolderSplit, "/y_pred_thrLC.csv", sep=""),
-              row.names = FALSE)
-    
     
     ##########################################################################    
     avaliacao(f = f, y_true = y.true.3, y_pred = y_proba,
               salva = FolderSplit, nome = "results-utiml")
     
-    ##########################################################################    
-    avaliacao(f = f, y_true = y.true.3, y_pred = y_proba,
-              salva = FolderSplit, nome = "results-utiml")
     
     ##########################################################################    
     roc.curve(f = f, y_pred = y_proba, test = y.true.3, 
@@ -288,6 +252,27 @@ evaluate.ecc.python <- function(parameters, folder){
                 y_proba = y_proba,
                 Folder = FolderSplit, 
                 nome = paste(FolderSplit, "/results-r.csv", sep=""))
+    
+    #########################################################################
+    name.true = paste0(FolderSplit, "/y_true.csv")
+    name.proba = paste0(FolderSplit, "/y_pred_proba.csv")
+    
+    str.execute = paste("python3 ", parameters$Directories$FolderPython,
+                        "/curves.py ", 
+                        name.true, " ", 
+                        name.proba, " ", 
+                        FolderSplit, " ", 
+                        sep = "")
+    res = system(str.execute)
+    
+    if(res!=0){
+      #system(paste("rm -r ", parameters$Directories$FolderResults, sep=""))
+      #stop("\n\n Something went wrong in python\n\n")
+      message("\n\n Something went wrong in python \n\n")
+    } else {
+      message("\n\n PYTHON RAN OK! \n\n")
+    }
+    
     
     
     # f = f + 1

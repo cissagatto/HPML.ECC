@@ -108,33 +108,20 @@ run.ecc.python <- function(parameters){
   time.execute = system.time(execute.ecc.python(parameters))
   
   
-  cat("\n############################################################")
-  cat("\n# RUN: Evaluate 1                                          #")
-  cat("\n############################################################\n\n")
+  cat("\n###########################################################")
+  cat("\n# RUN: Evaluate                                           #")
+  cat("\n###########################################################\n\n")
   time.evaluate = system.time(evaluate.ecc.python(parameters,
                                                   folder = parameters$Directories$folderECC))
   
-  
-  cat("\n############################################################")
-  cat("\n# RUN: Evaluate 2                                          #")
-  cat("\n############################################################\n\n")
-  time.evaluate = system.time(evaluate.ecc.python(parameters,
-                                                  folder = parameters$Directories$FolderECC2))
-  
-  
-  cat("\n############################################################")
-  cat("\n# RUN: Gather Evaluated Measures 1                         #")
-  cat("\n############################################################\n\n")
+
+  cat("\n###########################################################")
+  cat("\n# RUN: Gather Evaluated Measures                          #")
+  cat("\n###########################################################\n\n")
   time.gather.evaluate = system.time(gather.eval.python.silho(parameters,
                                                               folder = parameters$Directories$folderECC))
   
-  
-  cat("\n############################################################")
-  cat("\n# RUN: Gather Evaluated Measures 2                         #")
-  cat("\n############################################################\n\n")
-  time.gather.evaluate = system.time(gather.eval.python.silho(parameters,
-                                                              folder = parameters$Directories$FolderECC2))
-  
+
   
   #cat("\n############################################################")
   #cat("\n# RUN: Save Runtime                                        #")
