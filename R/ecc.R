@@ -348,9 +348,9 @@ if(implementation=="utiml"){
   res = system(str5)
   
   if(res!=0){
-    system(paste("rm -r ", parameters$Directories$FolderResults, sep=""))
-    print(res)
-    stop("\n\n Something went wrong in compressing results files \n\n")
+    #system(paste("rm -r ", parameters$Directories$FolderResults, sep=""))
+    #print(res)
+    message("\n\n Something went wrong in compressing results files \n\n")
   }
   
   
