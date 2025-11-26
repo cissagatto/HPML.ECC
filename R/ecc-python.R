@@ -131,8 +131,8 @@ execute.ecc.python <- function(parameters){
                         sep="")
     res = system(str.execute)
     if(res!=0){
-      system(paste("rm -r ", parameters$Directories$FolderResults, sep=""))
-      stop("\n\n Something went wrong in python VERSION 2\n\n")
+      # system(paste("rm -r ", parameters$Directories$FolderResults, sep=""))
+      message("\n\n Something went wrong in python VERSION 2\n\n")
     } else {
       message("\n\n PYTHON RAN OK! \n\n")
     }
@@ -330,7 +330,7 @@ gather.eval.python.silho <- function(parameters, folder){
     if (length(arquivos_faltando) > 0) {
       cat("\n\nErro: os seguintes arquivos não foram encontrados no fold", f, ":\n")
       print(arquivos_faltando)
-      stop("\n\nExecução interrompida — arquivos ausentes.")
+      message("\n\nExecução interrompida — arquivos ausentes.")
     }
     
     
