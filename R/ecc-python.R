@@ -379,14 +379,14 @@ gather.eval.python.silho <- function(parameters, folder){
     
     #################################
     # /tmp/gr-emotions/Global/Split-1
-    system(paste0("rm -r ", folderSplit, "/model-size.csv", sep=""))
-    system(paste0("rm -r ", folderSplit, "/r-auprc-per-label.csv", sep=""))
-    system(paste0("rm -r ", folderSplit, "/results-mldr.csv", sep=""))
-    system(paste0("rm -r ", folderSplit, "/results-python.csv", sep=""))
-    system(paste0("rm -r ", folderSplit, "/results-r.csv", sep=""))
-    system(paste0("rm -r ", folderSplit, "/results-utiml.csv", sep=""))
-    system(paste0("rm -r ", folderSplit, "/runtime-python.csv", sep=""))
-    system(paste0("rm -r ", folderSplit, "/y_pred_thr05.csv", sep=""))
+    # system(paste0("rm -r ", folderSplit, "/model-size.csv", sep=""))
+    # system(paste0("rm -r ", folderSplit, "/r-auprc-per-label.csv", sep=""))
+    # system(paste0("rm -r ", folderSplit, "/results-mldr.csv", sep=""))
+    # system(paste0("rm -r ", folderSplit, "/results-python.csv", sep=""))
+    # system(paste0("rm -r ", folderSplit, "/results-r.csv", sep=""))
+    # system(paste0("rm -r ", folderSplit, "/results-utiml.csv", sep=""))
+    # system(paste0("rm -r ", folderSplit, "/runtime-python.csv", sep=""))
+    # system(paste0("rm -r ", folderSplit, "/y_pred_thr05.csv", sep=""))
     
     f = f + 1
     gc()
